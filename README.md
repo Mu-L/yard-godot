@@ -23,24 +23,21 @@ SPDX-License-Identifier: MIT
 <p align="center">
   <a href="https://godotengine.org/download/" target="_blank" style="text-decoration:none"><img alt="Godot v4.5+" src="https://img.shields.io/badge/Godot-v4.5+-%23478cbf?color=49A9B4" /></a>
   <a href="https://github.com/elliotfontaine/yard-godot/releases"  target="_blank" style="text-decoration:none"><img alt="Latest YARD Release" src="https://img.shields.io/github/v/release/elliotfontaine/yard-godot?include_prereleases&label=Release"></a>
+  <a href="https://github.com/elliotfontaine/yard-godot/actions?query=branch%3Amain"  target="_blank" style="text-decoration:none"><img alt="GitHub branch check suites" src="https://img.shields.io/github/check-suites/elliotfontaine/yard-godot/main?label=Status"></a>
 </p>
 
 ## Overview
 
-YARD builds on Godot's [resource system](https://docs.godotengine.org/en/4.5/tutorials/scripting/resources.html). It has two parts:
-
-**A table-based resource editor.** The YARD editor tab lets you create and manage registries: catalogues of resources, optionally restricted to a class. Each registry provides a spreadsheet-like view of your resources and their properties.
-
-**A lightweight runtime API.** At runtime, a `Registry` is just a small `.tres` file holding UIDs and string IDs. It contains only the mapping, never the resources themselves. _You_ control when loading happens, and how.
+YARD builds on Godot's [resource system](https://docs.godotengine.org/en/4.5/tutorials/scripting/resources.html). The editor tab lets you create and manage **registries**: collections of resources backed by a small `.tres` file that stores only IDs, not the resources themselves. You control if and when resources are loaded.
 
 ## Features
 
-- 🏷 Stable string IDs that survive file moves, with no autoload boilerplate to maintain
-- 🔒 Restrict a registry to a class so only matching resources can be added
-- 🔄 Sync a registry from a directory (recursively or not), with entries staying in sync as files appear or disappear
-- 🥧 Bake a property index in the editor for zero-cost runtime filtering by property value
-- 📦 Load entries individually, all at once (blocking), or asynchronously via threaded loading
-- ⚡ All expensive operations happen in the editor, leaving no runtime overhead beyond what you explicitly request
+- 📊 Browse and edit resources as entries in a spreadsheet-like table, right in the editor
+- 🏷 Reference resources by stable string IDs instead of file paths or autoloads
+- 🔒 Restrict entries to a specific Resource subclass
+- 🔄 Keep a registry in sync with a directory as files appear or disappear
+- 🔍 Filter entries by property value at runtime, without loading a single resource
+- 🔽 Pick a registry entry from an inspector dropdown using `@export_custom` in your scripts
 
 ## Installation
 
