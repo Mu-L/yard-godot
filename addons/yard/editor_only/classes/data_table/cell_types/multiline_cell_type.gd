@@ -21,6 +21,7 @@ static func create_editor(owner: Control, rect: Rect2, value: Variant, _column: 
 	editor.wrap_mode = TextEdit.LINE_WRAPPING_BOUNDARY
 	editor.text_set.connect(on_finished.bind(true))
 	editor.focus_exited.connect(func() -> void: on_finished.call(true))
+	editor.gui_input.connect(_on_ui_cancel_close.bind(on_finished))
 	editor.grab_focus()
 	editor.select_all()
 	return editor
@@ -29,3 +30,8 @@ static func create_editor(owner: Control, rect: Rect2, value: Variant, _column: 
 static func read_editor_value(editor: Node, _column: ColumnConfig) -> Variant:
 	var text_edit: TextEdit = editor
 	return text_edit.text
+
+
+static func _on_ui_cancel_close(event: InputEvent, on_finished: Callable) -> void:
+	if event.is_action_pressed(&"ui_cancel"):
+		on_finished.call(true)

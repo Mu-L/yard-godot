@@ -27,27 +27,19 @@ enum ColumnMenuAction {
 const Namespace := preload("res://addons/yard/editor_only/namespace.gd")
 const RegistryIO := Namespace.RegistryIO
 const ClassUtils := Namespace.ClassUtils
+const ShortcutUtils := Namespace.ShortcutUtils
 const EditorThemeUtils := Namespace.EditorThemeUtils
 const DataTable := Namespace.DataTable
 const YardLogger := Namespace.YardLogger
 const RegistryCacheData := Namespace.YardEditorCache.RegistryCacheData
 
-const ACCELERATORS_WIN: Dictionary = {
-	EditMenuAction.DELETE_ENTRIES: KEY_MASK_CTRL | KEY_BACKSPACE,
-	EditMenuAction.DUPLICATE_ENTRIES: KEY_MASK_CTRL | KEY_D,
-	EditMenuAction.CUT_CELL_VALUE: KEY_MASK_CTRL | KEY_X,
-	EditMenuAction.COPY_CELL_VALUE: KEY_MASK_CTRL | KEY_C,
-	EditMenuAction.PASTE_TO_CELL: KEY_MASK_CTRL | KEY_V,
-	EditMenuAction.SELECT_ALL: KEY_MASK_CTRL | KEY_A,
-}
-
-const ACCELERATORS_MAC: Dictionary = {
-	EditMenuAction.DELETE_ENTRIES: KEY_MASK_META | KEY_BACKSPACE,
-	EditMenuAction.DUPLICATE_ENTRIES: KEY_MASK_META | KEY_D,
-	EditMenuAction.CUT_CELL_VALUE: KEY_MASK_META | KEY_X,
-	EditMenuAction.COPY_CELL_VALUE: KEY_MASK_META | KEY_C,
-	EditMenuAction.PASTE_TO_CELL: KEY_MASK_META | KEY_V,
-	EditMenuAction.SELECT_ALL: KEY_MASK_META | KEY_A,
+const ACTION_SHORTCUTS: Dictionary[EditMenuAction, String] = {
+	EditMenuAction.DELETE_ENTRIES: "delete_entries",
+	EditMenuAction.DUPLICATE_ENTRIES: "duplicate_entries",
+	EditMenuAction.CUT_CELL_VALUE: "cut_cell_clipboard",
+	EditMenuAction.COPY_CELL_VALUE: "copy_cell_clipboard",
+	EditMenuAction.PASTE_TO_CELL: "paste_cell_clipboard",
+	EditMenuAction.SELECT_ALL: "select_all_entries",
 }
 
 const INVALID_UID := "uid://<invalid>"
@@ -110,10 +102,12 @@ func _ready() -> void:
 	data_table.multiple_rows_selected.connect(_on_multiple_rows_selected)
 	entry_name_line_edit.text_submitted.connect(_on_new_entry_text_submitted)
 
-	var accelerators := ACCELERATORS_MAC if OS.get_name() == "macOS" else ACCELERATORS_WIN
-	for action: EditMenuAction in accelerators:
+	for action: EditMenuAction in ACTION_SHORTCUTS:
 		if edit_context_menu.get_item_index(action) != -1:
-			edit_context_menu.set_item_accelerator(edit_context_menu.get_item_index(action), accelerators.get(action))
+			var action_string: String = ACTION_SHORTCUTS.get(action, "")
+			var shortcut := ShortcutUtils.get_action_shortcut(action_string)
+			if shortcut and shortcut.has_valid_event():
+				edit_context_menu.set_item_shortcut(edit_context_menu.get_item_index(action), shortcut)
 
 	resource_picker_container.add_theme_stylebox_override(
 		&"panel",
@@ -128,10 +122,9 @@ func _ready() -> void:
 	drag_and_drop_info_panel.get_theme_stylebox(&"panel").bg_color.a = 0.8
 	focus_panel.add_theme_stylebox_override(&"panel", get_theme_stylebox("Focus", "EditorStyles"))
 
-	if ClassUtils.is_engine_version_equal_or_newer(4, 6):
-		var files_shortcut: Shortcut = EditorInterface.get_editor_settings().get_shortcut("script_editor/toggle_files_panel")
-		if files_shortcut:
-			toggle_registry_panel_button.shortcut = files_shortcut
+	var files_shortcut := ShortcutUtils.get_action_shortcut("toggle_registries_panel")
+	if files_shortcut:
+		toggle_registry_panel_button.shortcut = files_shortcut
 
 	grow_horizontal = Control.GROW_DIRECTION_END
 	grow_vertical = Control.GROW_DIRECTION_END

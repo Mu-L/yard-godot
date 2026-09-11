@@ -20,6 +20,11 @@ static func create_editor(owner: Control, rect: Rect2, value: Variant, column: C
 	editor.alignment = column.h_alignment
 	editor.text_submitted.connect(func(_text: String) -> void: on_finished.call(true))
 	editor.focus_exited.connect(func() -> void: on_finished.call(true))
+	editor.editing_toggled.connect(
+		func(toggled_on: bool) -> void:
+			if not toggled_on:
+				on_finished.call(true)
+	)
 	editor.grab_focus()
 	editor.select_all()
 	return editor

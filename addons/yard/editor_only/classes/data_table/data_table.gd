@@ -24,6 +24,7 @@ const CellType := Namespace.CellType
 const EditorThemeUtils := Namespace.EditorThemeUtils
 const ClassUtils := Namespace.ClassUtils
 const YardLogger := Namespace.YardLogger
+const Compat := Namespace.Compat
 const AnyIcon := Namespace.AnyIcon
 
 # Theming properties
@@ -83,7 +84,6 @@ var n_frozen_columns: int = 0 ## Derived value
 # Scrolling
 var _h_scroll: HScrollBar
 var _v_scroll: VScrollBar
-var _h_scroll_position := 0
 var _visible_rows_range: Array[int] = [0, 0]
 
 # Column resizing (dragging a header divider)
@@ -188,7 +188,7 @@ func _draw() -> void:
 
 	var frozen_w := _get_frozen_width()
 	_style.frozen_width = frozen_w
-	var scroll_x := frozen_w - _h_scroll_position
+	var scroll_x := frozen_w - _h_scroll.value
 	var vis_w := size.x - (_v_scroll.size.x if _v_scroll.visible else 0.0)
 	var y_offset := header_height
 	RenderingServer.canvas_item_set_clip(_pixelated_canvas_rid, true)
@@ -246,7 +246,7 @@ func set_native_theming(delay: int = 0) -> void:
 	default_font_color = root.get_theme_color(&"font_color", &"Editor")
 	font_size = root.get_theme_font_size(&"main_size", &"EditorFonts")
 	row_color = root.get_theme_color(&"base_color", &"Editor")
-	if ClassUtils.is_engine_version_equal_or_newer(4, 6) and editor_settings.get_setting("interface/theme/style") == "Modern":
+	if Compat.is_engine_version_equal_or_newer(4, 6) and editor_settings.get_setting("interface/theme/style") == "Modern":
 		alternate_row_color = root.get_theme_color(&"dark_color_3", &"Editor")
 		header_color = root.get_theme_color(&"dark_color_1", &"Editor")
 	else:
@@ -503,7 +503,7 @@ func _setup_components() -> void:
 	_h_scroll = HScrollBar.new()
 	_h_scroll.set_anchors_and_offsets_preset(PRESET_BOTTOM_WIDE)
 	_h_scroll.offset_top = -8 * get_theme_default_base_scale()
-	_h_scroll.value_changed.connect(_on_h_scroll_changed)
+	_h_scroll.value_changed.connect(_on_h_scroll_value_changed)
 
 	_v_scroll = VScrollBar.new()
 	_v_scroll.set_anchors_and_offsets_preset(PRESET_RIGHT_WIDE)
@@ -595,6 +595,10 @@ func _is_numeric_value(value: Variant) -> bool:
 		return false
 	var str_val := str(value)
 	return str_val.is_valid_float() or str_val.is_valid_int()
+
+
+func _get_page_row_count() -> int:
+	return maxi(1, floori((size.y - header_height) / row_height) if row_height > 0 else 10)
 
 
 func _start_cell_editing(row: StringName, col: StringName) -> void:
@@ -833,7 +837,7 @@ func _get_col_at_x(x: float) -> int:
 			col_x += _columns[col_idx].current_width
 		return -1
 
-	col_x = frozen_w - _h_scroll_position
+	col_x = frozen_w - _h_scroll.value
 	for col_idx in range(n_frozen_columns, _columns.size()):
 		var col_end := col_x + _columns[col_idx].current_width
 		if x >= maxf(col_x, frozen_w) and x < col_end:
@@ -863,7 +867,7 @@ func _get_col_x_pos(col_idx: int) -> float:
 			x += _columns[i].current_width
 		return x
 	else:
-		var x := _get_frozen_width() - _h_scroll_position
+		var x := _get_frozen_width() - _h_scroll.value
 		for i in range(n_frozen_columns, col_idx):
 			x += _columns[i].current_width
 		return x
@@ -996,13 +1000,17 @@ func _handle_mouse_button(event: InputEventMouseButton) -> void:
 			MOUSE_BUTTON_RIGHT:
 				_handle_right_click(event.position)
 			MOUSE_BUTTON_WHEEL_UP:
-				_v_scroll.value = maxf(0.0, _v_scroll.value - _v_scroll.step)
+				if not _current_editor_node:
+					_v_scroll.value = maxf(0.0, _v_scroll.value - _v_scroll.step)
 			MOUSE_BUTTON_WHEEL_DOWN:
-				_v_scroll.value = minf(_v_scroll.max_value, _v_scroll.value + _v_scroll.step)
+				if not _current_editor_node:
+					_v_scroll.value = minf(_v_scroll.max_value, _v_scroll.value + _v_scroll.step)
 			MOUSE_BUTTON_WHEEL_LEFT:
-				_h_scroll.value = maxf(0.0, _h_scroll.value - _v_scroll.step)
+				if not _current_editor_node:
+					_h_scroll.value = maxf(0.0, _h_scroll.value - _v_scroll.step)
 			MOUSE_BUTTON_WHEEL_RIGHT:
-				_h_scroll.value = minf(_h_scroll.max_value, _h_scroll.value + _v_scroll.step)
+				if not _current_editor_node:
+					_h_scroll.value = minf(_h_scroll.max_value, _h_scroll.value + _v_scroll.step)
 	else:
 		match event.button_index:
 			MOUSE_BUTTON_LEFT:
@@ -1054,41 +1062,6 @@ func _handle_left_release(event: InputEventMouseButton) -> void:
 	if _live_edit_row != &"":
 		_dispatch_cell_input(event, _live_edit_row, _live_edit_col)
 	_resizing_column = &""
-
-
-## Lets the CellType at (row, col) claim an InputEvent (true) or pass it
-## through (false). On claim, pins live-edit routing so follow-up motion or
-## release events keep reaching this cell even after the cursor leaves it.
-func _dispatch_cell_input(event: InputEvent, row: StringName, col: StringName) -> bool:
-	if row == &"" or col == &"":
-		return false
-
-	var column := get_column(col)
-	var cell_value: Variant = get_cell_value(row, col)
-	var rect := _get_cell_rect(row, col)
-	var result: Dictionary = column.get_cell_type().handle_input(event, rect, cell_value, column, _style)
-	if result.is_empty():
-		return false
-
-	if result.has(&"value"):
-		update_cell(row, col, result[&"value"])
-
-	if result.get(&"commit", false):
-		var old_value: Variant = _live_edit_start_value if row == _live_edit_row and col == _live_edit_col else cell_value
-		cell_edited.emit(row, col, old_value, get_cell_value(row, col))
-		_live_edit_row = &""
-		_live_edit_col = &""
-		_live_edit_start_value = null
-	else:
-		if _live_edit_row != row or _live_edit_col != col:
-			_live_edit_row = row
-			_live_edit_col = col
-			_live_edit_start_value = cell_value
-		if result.has(&"value"):
-			progress_changed.emit(row, col, result[&"value"])
-
-	queue_redraw()
-	return true
 
 
 func _handle_cell_click(mouse_pos: Vector2, event: InputEventMouseButton) -> void:
@@ -1182,98 +1155,136 @@ func _handle_header_double_click(mouse_pos: Vector2) -> void:
 
 
 func _handle_key_input(event: InputEventKey) -> void:
-	if _current_editor_node != null and _current_editor_node is LineEdit:
-		if event.keycode == KEY_ESCAPE:
-			_finish_editing(false)
-			get_viewport().set_input_as_handled()
+	var is_any_cell_focused := focused_row != &"" and focused_col != &""
+	var focused_row_idx := _order.find(focused_row) if focused_row != &"" else -1
+	var focused_col_idx := _get_column_index(focused_col) if focused_col != &"" else -1
+
+	# EDIT CELL
+	if event.is_action_pressed(&"ui_accept"):
+		if not is_any_cell_focused:
+			return
+		if not _dispatch_cell_input(event, focused_row, focused_col):
+			_start_cell_editing(focused_row, focused_col)
+
+	# SELECT ALL ROWS
+	elif event.is_action_pressed(&"ui_text_select_all"):
+		if _order.is_empty():
+			return
+		select_all_rows()
+		multiple_rows_selected.emit(selected_rows)
+
+	# UNSELECT
+	elif event.is_action_pressed(&"ui_cancel"):
+		if selected_rows.is_empty() and focused_row == &"":
+			return
+		set_selected_cell(&"", &"")
+
+	# SELECT FOCUSED CELL
+	elif event.is_action_pressed(&"ui_select"):
+		if not is_any_cell_focused:
+			return
+		if selected_rows.has(focused_row):
+			selected_rows.erase(focused_row)
+		else:
+			selected_rows.append(focused_row)
+		_anchor_row = focused_row
+		cell_selected.emit(focused_row, focused_col)
+
+	# NAVIGATE TO FIRST ROW
+	elif event.is_action_pressed(&"ui_home"):
+		if _order.is_empty():
+			return
+		var new_row_idx := 0 if not _order.is_empty() else -1
+		var new_col_idx := 0 if not _columns.is_empty() else -1
+		_navigate_to(new_row_idx, new_col_idx, event)
+
+	# NAVIGATE TO LAST ROW
+	elif event.is_action_pressed(&"ui_end"):
+		if _order.is_empty():
+			return
+		var new_row_idx := _order.size() - 1
+		var new_col_idx := _columns.size() - 1
+		_navigate_to(new_row_idx, new_col_idx, event)
+
+	# NAVIGATE UP
+	elif event.is_action_pressed(&"ui_up", true):
+		if not is_any_cell_focused:
+			return
+		var new_row_idx := maxi(0, focused_row_idx - 1)
+		_navigate_to(new_row_idx, focused_col_idx, event)
+
+	# NAVIGATE DOWN
+	elif event.is_action_pressed(&"ui_down", true):
+		if not is_any_cell_focused:
+			return
+		var new_row_idx := mini(_order.size() - 1, focused_row_idx + 1)
+		_navigate_to(new_row_idx, focused_col_idx, event)
+
+	# NAVIGATE LEFT
+	elif event.is_action_pressed(&"ui_left", true):
+		if not is_any_cell_focused:
+			return
+		var new_col_idx: = maxi(0, focused_col_idx - 1)
+		_navigate_to(focused_row_idx, new_col_idx, event)
+
+	# NAVIGATE RIGHT
+	elif event.is_action_pressed(&"ui_right", true):
+		if not is_any_cell_focused:
+			return
+		var new_col_idx := mini(_columns.size() - 1, focused_col_idx + 1)
+		_navigate_to(focused_row_idx, new_col_idx, event)
+
+	# NAVIGATE 1 PAGE UP
+	elif event.is_action_pressed(&"ui_page_up", true):
+		if not is_any_cell_focused:
+			return
+		var new_row_idx := maxi(0, focused_row_idx - _get_page_row_count())
+		_navigate_to(new_row_idx, focused_col_idx, event)
+
+	# NAVIGATE 1 PAGE DOWN
+	elif event.is_action_pressed(&"ui_page_down", true):
+		if not is_any_cell_focused:
+			return
+		var new_row_idx := mini(_order.size() - 1, focused_row_idx + _get_page_row_count())
+		_navigate_to(new_row_idx, focused_col_idx, event)
+
+	else:
 		return
 
-	var keycode := event.keycode
-	var is_shift := event.is_shift_pressed()
-	var is_ctrl_cmd := event.is_ctrl_pressed() or event.is_meta_pressed()
-	var is_cell_focused := focused_row != &"" and focused_col != &""
+	queue_redraw()
+	get_viewport().set_input_as_handled()
 
-	var focused_idx := _order.find(focused_row) if focused_row != &"" else -1
-	var focused_col_idx := _get_column_index(focused_col) if focused_col != &"" else -1
-	var new_idx := focused_idx
-	var new_col_idx := focused_col_idx
 
-	match keycode:
-		KEY_ENTER, KEY_KP_ENTER:
-			if not is_cell_focused:
-				return
-			if not _dispatch_cell_input(event, focused_row, focused_col):
-				_start_cell_editing(focused_row, focused_col)
-			_finalize_key_operation()
-			return
-		KEY_A:
-			if is_ctrl_cmd and not _order.is_empty():
-				select_all_rows()
-				multiple_rows_selected.emit(selected_rows)
-				_finalize_key_operation()
-			return
-		KEY_ESCAPE:
-			if selected_rows.is_empty() and focused_row == &"":
-				return
-			set_selected_cell(&"", &"")
-			_finalize_key_operation()
-			return
-		KEY_HOME:
-			if _order.is_empty():
-				return
-			new_idx = 0
-			new_col_idx = 0 if not _columns.is_empty() else -1
-		KEY_END:
-			if _order.is_empty():
-				return
-			new_idx = _order.size() - 1
-			new_col_idx = _columns.size() - 1 if not _columns.is_empty() else -1
-		KEY_UP:
-			if not is_cell_focused:
-				return
-			new_idx = maxi(0, focused_idx - 1)
-		KEY_DOWN:
-			if not is_cell_focused:
-				return
-			new_idx = mini(_order.size() - 1, focused_idx + 1)
-		KEY_LEFT:
-			if not is_cell_focused:
-				return
-			new_col_idx = maxi(0, focused_col_idx - 1)
-		KEY_RIGHT:
-			if not is_cell_focused:
-				return
-			new_col_idx = mini(_columns.size() - 1, focused_col_idx + 1)
-		KEY_PAGEUP:
-			if not is_cell_focused:
-				return
-			new_idx = maxi(0, focused_idx - _page_row_count())
-		KEY_PAGEDOWN:
-			if not is_cell_focused:
-				return
-			new_idx = mini(_order.size() - 1, focused_idx + _page_row_count())
-		KEY_SPACE:
-			if not is_cell_focused or not is_ctrl_cmd:
-				return
-			if selected_rows.has(focused_row):
-				selected_rows.erase(focused_row)
-			else:
-				selected_rows.append(focused_row)
-			_anchor_row = focused_row
-			cell_selected.emit(focused_row, focused_col)
-			_finalize_key_operation()
-			return
-		_:
-			return
-
+func _navigate_to(new_idx: int, new_col_idx: int, key_event: InputEventKey) -> void:
 	var new_row := _order[new_idx] if new_idx >= 0 and new_idx < _order.size() else &""
 	var new_col := _columns[new_col_idx].identifier if new_col_idx >= 0 and new_col_idx < _columns.size() else &""
 	var old_row := focused_row
 	var old_col := focused_col
+
 	focused_row = new_row
 	focused_col = new_col
 
-	_update_selection_after_navigation(old_row, focused_idx, is_shift, is_ctrl_cmd)
+	if key_event.is_shift_pressed():
+		if _anchor_row == &"":
+			_anchor_row = old_row if old_row != &"" else (_order[0] if not _order.is_empty() else &"")
+		if focused_row != &"":
+			var anchor_idx := _order.find(_anchor_row)
+			var focus_idx := _order.find(focused_row)
+			selected_rows.clear()
+			for i in range(mini(anchor_idx, focus_idx), maxi(anchor_idx, focus_idx) + 1):
+				if i >= 0 and i < _order.size():
+					selected_rows.append(_order[i])
+			if selected_rows.size() > 1:
+				multiple_rows_selected.emit(selected_rows)
+	elif key_event.is_command_or_control_pressed():
+		pass
+	else:
+		selected_rows.clear()
+		if focused_row != &"":
+			selected_rows.append(focused_row)
+			_anchor_row = focused_row
+		else:
+			_anchor_row = &""
 
 	if focused_row != &"":
 		_ensure_row_visible(focused_row)
@@ -1281,43 +1292,6 @@ func _handle_key_input(event: InputEventKey) -> void:
 
 	if old_row != focused_row or old_col != focused_col:
 		cell_selected.emit(focused_row, focused_col)
-
-	_finalize_key_operation()
-
-
-func _page_row_count() -> int:
-	return maxi(1, floori((size.y - header_height) / row_height) if row_height > 0 else 10)
-
-
-func _update_selection_after_navigation(old_row: StringName, _old_idx: int, is_shift: bool, is_ctrl_cmd: bool) -> void:
-	if is_shift:
-		if _anchor_row == &"":
-			_anchor_row = old_row if old_row != &"" else (_order[0] if not _order.is_empty() else &"")
-		if focused_row == &"":
-			return
-		var anchor_idx := _order.find(_anchor_row)
-		var focus_idx := _order.find(focused_row)
-		selected_rows.clear()
-		for i in range(mini(anchor_idx, focus_idx), maxi(anchor_idx, focus_idx) + 1):
-			if i >= 0 and i < _order.size():
-				selected_rows.append(_order[i])
-		if selected_rows.size() > 1:
-			multiple_rows_selected.emit(selected_rows)
-	elif is_ctrl_cmd:
-		pass
-	else:
-		if focused_row != &"":
-			selected_rows.clear()
-			selected_rows.append(focused_row)
-			_anchor_row = focused_row
-		else:
-			selected_rows.clear()
-			_anchor_row = &""
-
-
-func _finalize_key_operation() -> void:
-	queue_redraw()
-	get_viewport().set_input_as_handled()
 
 
 func _apply_pan_axis(delta: float, scroll: ScrollBar, axis: int) -> void:
@@ -1327,8 +1301,44 @@ func _apply_pan_axis(delta: float, scroll: ScrollBar, axis: int) -> void:
 		_pan_delta_accumulation[axis] = 0.0
 	_pan_delta_accumulation[axis] += delta
 	if abs(_pan_delta_accumulation[axis]) >= 1.0:
-		scroll.value += sign(_pan_delta_accumulation[axis]) * _v_scroll.step
+		if not _current_editor_node:
+			scroll.value += sign(_pan_delta_accumulation[axis]) * _v_scroll.step
 		_pan_delta_accumulation[axis] -= sign(_pan_delta_accumulation[axis])
+
+
+## Lets the CellType at (row, col) claim an InputEvent (true) or pass it
+## through (false). On claim, pins live-edit routing so follow-up motion or
+## release events keep reaching this cell even after the cursor leaves it.
+func _dispatch_cell_input(event: InputEvent, row: StringName, col: StringName) -> bool:
+	if row == &"" or col == &"":
+		return false
+
+	var column := get_column(col)
+	var cell_value: Variant = get_cell_value(row, col)
+	var rect := _get_cell_rect(row, col)
+	var result: Dictionary = column.get_cell_type().handle_input(event, rect, cell_value, column, _style)
+	if result.is_empty():
+		return false
+
+	if result.has(&"value"):
+		update_cell(row, col, result[&"value"])
+
+	if result.get(&"commit", false):
+		var old_value: Variant = _live_edit_start_value if row == _live_edit_row and col == _live_edit_col else cell_value
+		cell_edited.emit(row, col, old_value, get_cell_value(row, col))
+		_live_edit_row = &""
+		_live_edit_col = &""
+		_live_edit_start_value = null
+	else:
+		if _live_edit_row != row or _live_edit_col != col:
+			_live_edit_row = row
+			_live_edit_col = col
+			_live_edit_start_value = cell_value
+		if result.has(&"value"):
+			progress_changed.emit(row, col, result[&"value"])
+
+	queue_redraw()
+	return true
 
 #endregion
 
@@ -1347,9 +1357,8 @@ func _on_double_click_timeout() -> void:
 	_click_count = 0
 
 
-func _on_h_scroll_changed(value: float) -> void:
-	_h_scroll_position = int(value)
-	if _current_editor_node != null and _current_editor_node is LineEdit:
+func _on_h_scroll_value_changed(_value: float) -> void:
+	if _current_editor_node:
 		_finish_editing(false)
 	queue_redraw()
 
@@ -1362,7 +1371,7 @@ func _on_v_scroll_value_changed(value: float) -> void:
 	else:
 		_visible_rows_range = [0, _order.size()]
 
-	if _current_editor_node != null and _current_editor_node is LineEdit:
+	if _current_editor_node:
 		_finish_editing(false)
 	queue_redraw()
 
