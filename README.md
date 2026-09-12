@@ -46,6 +46,8 @@ YARD builds on Godot's [resource system](https://docs.godotengine.org/en/4.5/tut
 
 ## Usage
 
+> The full `Registry` API is documented in the in-editor class reference: **Help > Search Help > Registry**.
+
 ### Creating a registry
 
 Open the **Registry** tab in the editor, click **File > New Registry**, and configure:
@@ -101,18 +103,16 @@ var high_level  := WEAPONS.filter(&"level", func(v): return v >= 10)
 
 # AND query across multiple properties (exact values or predicates)
 var forest_without_boss := ROOMS.where({
-	&"biome": Biome.FOREST,
-	&"tier": func(t): return t != RoomData.Tier.Boss,
+  &"biome": Biome.FOREST,
+  &"tier": func(t): return t != RoomData.Tier.Boss,
 })
 ```
 
 Properties support dot notation for nested resources: `&"weapon.rarity"` resolves the `rarity` property of the subresource stored in `weapon`.
 
-> The full `Registry` API is documented in the in-editor class reference: **Help > Search Help > Registry**.
-
 ## Contributing
 
-Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.
+Contributions are welcome. See [CONTRIBUTING.md](https://github.com/elliotfontaine/yard-godot/blob/main/CONTRIBUTING.md) before opening a pull request.
 
 For major changes, [open an issue](https://github.com/elliotfontaine/yard-godot/issues/new?template=feature_request.yml) first to discuss what you have in mind.
 
@@ -128,4 +128,4 @@ This policy may be revised as the volume of PRs requiring review increases.
 
 ## License
 
-[MIT](LICENSE)
+[MIT](https://github.com/elliotfontaine/yard-godot/blob/main/LICENSE)

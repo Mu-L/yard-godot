@@ -51,6 +51,8 @@ signal task_checkbox_clicked(id: int, line: int, checked: bool, task_string: Str
 @export var automatic_links := true
 ## If enabled, unrecognized links will be opened as HTTPS URLs (e.g. "example.com" will be opened as "https://example.com"). If disabled, unrecognized links will be left unhandled (emitting the [signal unhandled_link_clicked] signal). Ignored if [member automatic_links] is disabled.
 @export var assume_https_links := true
+## Number of lines to skip at the start of the text before parsing, e.g. to hide raw HTML badges/headers at the top of a GitHub README.
+@export var skip_lines: int = 0
 
 @export_group("Header formats")
 ## Formatting options for level-1 headers
@@ -109,6 +111,28 @@ signal task_checkbox_clicked(id: int, line: int, checked: bool, task_string: Str
 @export var hr_color: Color = Color.WHITE:
 	set(new_value):
 		hr_color = new_value
+		queue_update()
+
+@export_group("Code", "code_")
+## Enables a custom text color for inline code and code blocks.
+@export var code_override_color := false:
+	set(new_value):
+		code_override_color = new_value
+		queue_update()
+## Text color applied to inline code and code blocks, if enabled.
+@export var code_color: Color = Color.WHITE:
+	set(new_value):
+		code_color = new_value
+		queue_update()
+## Enables a custom background color for inline code and code blocks.
+@export var code_override_background_color := false:
+	set(new_value):
+		code_override_background_color = new_value
+		queue_update()
+## Background color applied to inline code and code blocks, if enabled.
+@export var code_background_color: Color = Color.BLACK:
+	set(new_value):
+		code_background_color = new_value
 		queue_update()
 
 #endregion
@@ -307,8 +331,12 @@ func _convert_markdown(source_text: String = "") -> String:
 	if not bbcode_enabled:
 		push_warning("WARNING: MarkdownLabel node will not format Markdown syntax if it doesn't have 'bbcode_enabled=true'")
 		return source_text
+	if skip_lines > 0:
+		source_text = "\n".join(source_text.split("\n").slice(skip_lines))
 	_converted_text = ""
 	var lines := source_text.split("\n")
+	var code_block_widths := _scan_code_block_widths(lines)
+	_debug("code_block_widths: %s" % code_block_widths)
 	_current_line = 0
 	_indent_level = -1
 	var indent_spaces := []
@@ -317,6 +345,7 @@ func _convert_markdown(source_text: String = "") -> String:
 	var within_tilde_block := false
 	var within_code_block := false
 	var current_code_block_char_count: int
+	var current_code_block_width: int
 	_within_table = false
 	_table_row = -1
 	_skip_line_break = false
@@ -324,13 +353,13 @@ func _convert_markdown(source_text: String = "") -> String:
 
 	for line: String in lines:
 		line = line.trim_suffix("\r")
-		_debug("Parsing line: '%s'" % line)
 		within_code_block = within_tilde_block or within_backtick_block
 		if _current_line > 0 and not _skip_line_break:
 			_converted_text += "\n"
 			_current_paragraph += 1
 		_skip_line_break = false
 		_current_line += 1
+		_debug("Parsing line: '%s' (%s)" % [line, _current_line])
 
 		line = _preprocess_line(line)
 
@@ -340,14 +369,16 @@ func _convert_markdown(source_text: String = "") -> String:
 				if line.strip_edges().length() >= current_code_block_char_count:
 					_converted_text = _converted_text.trim_suffix("\n")
 					_current_paragraph -= 1
-					_converted_text += "[/code]"
+					_converted_text += _get_code_close_tags()
 					within_backtick_block = false
 					_debug("... closing backtick block")
 					continue
 			else:
-				_converted_text += "[code]"
+				_converted_text += _get_code_open_tags()
 				within_backtick_block = true
 				current_code_block_char_count = 3 #line.strip_edges().length()
+				current_code_block_width = code_block_widths.get(_current_line, 0)
+				_skip_line_break = true
 				_debug("... opening backtick block")
 				continue
 		elif not within_backtick_block and _denotes_fenced_code_block(line, "~"):
@@ -355,18 +386,20 @@ func _convert_markdown(source_text: String = "") -> String:
 				if line.strip_edges().length() >= current_code_block_char_count:
 					_converted_text = _converted_text.trim_suffix("\n")
 					_current_paragraph -= 1
-					_converted_text += "[/code]"
+					_converted_text += _get_code_close_tags()
 					within_tilde_block = false
 					_debug("... closing tilde block")
 					continue
 			else:
-				_converted_text += "[code]"
+				_converted_text += _get_code_open_tags()
 				within_tilde_block = true
 				current_code_block_char_count = 3 #line.strip_edges().length()
+				current_code_block_width = code_block_widths.get(_current_line, 0)
+				_skip_line_break = true
 				_debug("... opening tilde block")
 				continue
 		if within_code_block: #ignore any formatting inside code block
-			_converted_text += _escape_bbcode(line)
+			_converted_text += _pad_code_line(_escape_bbcode(line), current_code_block_width)
 			continue
 
 		var _processed_line := line
@@ -557,7 +590,10 @@ func _process_inline_code_syntax(line: String) -> String:
 		var unescaped_content := _reset_escaped_chars(result.get_string(2), true)
 		unescaped_content = _escape_bbcode(unescaped_content)
 		unescaped_content = _escape_chars(unescaped_content)
-		processed_line = processed_line.erase(_start, _end - _start).insert(_start, "[code]%s[/code]" % unescaped_content)
+		processed_line = processed_line.erase(_start, _end - _start).insert(
+			_start,
+			" " + _get_code_open_tags(true) + unescaped_content + _get_code_close_tags(true) + " ",
+		)
 		_debug("... in-line code: " + unescaped_content)
 	return processed_line
 
@@ -758,7 +794,6 @@ func _process_header_syntax(line: String) -> String:
 					hr_width,
 					hr_color.to_html(),
 				]
-				_current_line += 1
 				_current_paragraph += 1
 	return processed_line
 
@@ -816,6 +851,39 @@ func _denotes_fenced_code_block(line: String, character: String) -> bool:
 		return true
 	else:
 		return false
+
+
+## Maps each fenced code block's opening line index to the max raw character
+## length found among its content lines. Used to right-pad shorter lines so
+## the block's background renders as a rectangle instead of hugging text.
+func _scan_code_block_widths(lines: PackedStringArray) -> Dictionary[int, int]:
+	var widths: Dictionary[int, int] = { }
+	var open_line := -1
+	var open_char := ""
+	var max_width := 0
+	for i in lines.size():
+		if open_line == -1:
+			if _denotes_fenced_code_block(lines[i], "`"):
+				open_line = i
+				open_char = "`"
+				max_width = 0
+			elif _denotes_fenced_code_block(lines[i], "~"):
+				open_line = i
+				open_char = "~"
+				max_width = 0
+		elif _denotes_fenced_code_block(lines[i], open_char):
+			widths[open_line + 1] = max_width
+			open_line = -1
+		else:
+			max_width = maxi(max_width, lines[i].length())
+	return widths
+
+
+func _pad_code_line(escaped_line: String, width: int) -> String:
+	var missing := width - escaped_line.length()
+	if missing <= 0:
+		return escaped_line
+	return escaped_line + "[color=#00000000]" + "-".repeat(missing) + "[/color]"
 
 
 func _process_escaped_characters(line: String) -> String:
@@ -919,6 +987,24 @@ func _get_header_reference(header_string: String) -> String:
 	else:
 		_header_anchor_count[anchor] = 1
 	return anchor
+
+
+func _get_code_open_tags(keep_color: bool = false) -> String:
+	var tags := ""
+	if code_override_background_color:
+		tags += "[bgcolor=#%s]" % code_background_color.to_html(true)
+	if code_override_color and not keep_color:
+		tags += "[color=#%s]" % code_color.to_html(false)
+	return tags + "[code]"
+
+
+func _get_code_close_tags(keep_color: bool = false) -> String:
+	var tags := "[/code]"
+	if code_override_color and not keep_color:
+		tags += "[/color]"
+	if code_override_background_color:
+		tags += "[/bgcolor]"
+	return tags
 
 
 func _on_checkbox_clicked(id: int, was_checked: bool) -> void:
