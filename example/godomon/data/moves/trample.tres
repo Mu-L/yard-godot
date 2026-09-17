@@ -6,7 +6,6 @@
 script = ExtResource("1_move")
 name = "Trample"
 description = "The user tramples over the target with reckless force. This may also lower the target's Defense."
-type = &"wild"
 move_handler = &"lower_target_def_1"
 flags = Array[StringName]([&"contact"])
 power = 80

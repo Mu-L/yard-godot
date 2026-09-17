@@ -6,7 +6,6 @@
 script = ExtResource("1_move")
 name = "Feral Snap"
 description = "The user snaps at the target with wild feral fangs. This may also make the target flinch."
-type = &"wild"
 move_handler = &"flinch_target"
 flags = Array[StringName]([&"contact", &"biting"])
 power = 45

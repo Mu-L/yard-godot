@@ -6,7 +6,6 @@
 script = ExtResource("1_move")
 name = "Rampage"
 description = "The user throws itself at the target in an all-out frenzy."
-type = &"wild"
 flags = Array[StringName]([&"contact"])
 power = 110
 accuracy = 85

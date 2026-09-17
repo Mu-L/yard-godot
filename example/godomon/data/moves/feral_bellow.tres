@@ -6,7 +6,6 @@
 script = ExtResource("1_move")
 name = "Feral Bellow"
 description = "The user lets out a deep threatening bellow. This lowers the target's Attack."
-type = &"wild"
 category = 2
 move_handler = &"lower_target_atk_1"
 flags = Array[StringName]([&"sound"])
