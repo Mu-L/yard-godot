@@ -100,7 +100,8 @@ enum BodyColor {
 @export_group("Experience")
 @export var growth_rate: GrowthRate = GrowthRate.MEDIUM
 @export var base_exp: int = 100
-@export_subgroup("EVs") @export_range(0, 255, 1) var ev_hp: int = 0
+@export_subgroup("EVs")
+@export_range(0, 255, 1) var ev_hp: int = 0
 @export_range(0, 255, 1) var ev_attack: int = 0
 @export_range(0, 255, 1) var ev_defense: int = 0
 @export_range(0, 255, 1) var ev_sp_attack: int = 0
@@ -111,7 +112,8 @@ enum BodyColor {
 @export var gender_ratio: GenderRatio = GenderRatio.FEMALE_50_PERCENT
 @export_range(0, 255, 1) var catch_rate: int = 255
 @export_range(0, 255, 1) var happiness: int = 70
-@export_subgroup("Held Items") @export_custom(
+@export_subgroup("Held Items")
+@export_custom(
 	Registry.PROPERTY_HINT_CUSTOM,
 	"res://example/godomon/data/items.tres",
 ) var wild_item_common: Array[StringName] # 50%
@@ -175,7 +177,8 @@ enum BodyColor {
 @export var overworld_normal: CompressedTexture2D
 @export var overworld_shiny: CompressedTexture2D
 @export var dex_footprint: CompressedTexture2D
-@export_subgroup("Metrics") @export var front_offset: Vector2i
+@export_subgroup("Metrics")
+@export var front_offset: Vector2i
 @export var back_offset: Vector2i
 
 @export_group("Audio")
