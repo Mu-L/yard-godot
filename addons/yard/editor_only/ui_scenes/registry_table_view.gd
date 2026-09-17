@@ -93,9 +93,7 @@ func _ready() -> void:
 	if not Engine.is_editor_hint() or EditorInterface.get_edited_scene_root() == self:
 		return
 
-	EditorInterface.get_inspector().property_edited.connect(
-		_on_inspector_property_edited,
-	)
+	EditorInterface.get_inspector().property_edited.connect(_on_inspector_property_edited)
 
 	data_table.cell_selected.connect(_on_cell_selected)
 	data_table.cell_right_selected.connect(_on_cell_right_selected)
@@ -109,7 +107,10 @@ func _ready() -> void:
 			var action_string: String = ACTION_SHORTCUTS.get(action, "")
 			var shortcut := ShortcutUtils.get_action_shortcut(action_string)
 			if shortcut and shortcut.has_valid_event():
-				edit_context_menu.set_item_shortcut(edit_context_menu.get_item_index(action), shortcut)
+				edit_context_menu.set_item_shortcut(
+					edit_context_menu.get_item_index(action),
+					shortcut,
+				)
 
 	resource_picker_container.add_theme_stylebox_override(
 		&"panel",
@@ -120,7 +121,9 @@ func _ready() -> void:
 	resource_picker_container.get_theme_stylebox(&"panel").content_margin_left = 0
 	resource_picker_container.get_theme_stylebox(&"panel").content_margin_right = 0
 
-	drag_and_drop_info_panel.get_theme_stylebox(&"panel").bg_color = EditorThemeUtils.get_base_color(0.6)
+	drag_and_drop_info_panel.get_theme_stylebox(&"panel").bg_color = EditorThemeUtils.get_base_color(
+		0.6
+	)
 	drag_and_drop_info_panel.get_theme_stylebox(&"panel").bg_color.a = 0.8
 	focus_panel.add_theme_stylebox_override(&"panel", get_theme_stylebox("Focus", "EditorStyles"))
 
@@ -134,7 +137,10 @@ func _ready() -> void:
 
 func _process(_delta: float) -> void:
 	# Too many load() and inspect requests might be the source of the 'Abort trap: 6' crashes
-	if (_uid_resource_to_inspect or _subresource_to_inspect) and Engine.get_process_frames() % 30 == 0:
+	if (
+		(_uid_resource_to_inspect or _subresource_to_inspect)
+		and Engine.get_process_frames() % 30 == 0
+	):
 		if _subresource_to_inspect:
 			EditorInterface.edit_resource(_subresource_to_inspect)
 			_subresource_to_inspect = null
@@ -206,7 +212,12 @@ func _drop_data(_at_position: Vector2, data: Variant) -> void:
 
 		elif path.ends_with("/"):
 			for scan_ruleset in scan_rulesets:
-				var matching_resources := RegistryIO.dir_get_matching_resources(path, scan_ruleset, "", true)
+				var matching_resources := RegistryIO.dir_get_matching_resources(
+					path,
+					scan_ruleset,
+					"",
+					true,
+				)
 				for res in matching_resources:
 					var status := RegistryIO.add_entry(
 						current_registry,
@@ -229,7 +240,9 @@ func update_view() -> void:
 	var saved_sort_col := data_table.sort_column
 	var saved_sort_asc := data_table.sort_ascending
 	var focus_owner := get_viewport().gui_get_focus_owner() if get_viewport() else null
-	var table_had_focus := focus_owner and (data_table == focus_owner or data_table.is_ancestor_of(focus_owner))
+	var table_had_focus := (
+		focus_owner and (data_table == focus_owner or data_table.is_ancestor_of(focus_owner))
+	)
 
 	add_entry_container.visible = true
 
@@ -354,16 +367,44 @@ func toggle_edit_menu_items(edit_menu: PopupMenu) -> void:
 	var has_selected_row := row != &""
 	var cant_be_cut := col in [UID_COLUMN, STRINGID_COLUMN]
 	var is_cell_invalid: bool = not data_table.is_cell_valid(row, col)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.DELETE_ENTRIES), !has_selected_row)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.DUPLICATE_ENTRIES), !has_selected_row)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.COPY_STRING_ID), !has_selected_row)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.COPY_UID), !has_selected_row)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.SHOW_IN_FILESYSTEM), !has_selected_row)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.CUT_CELL_VALUE), !has_selected_cell or cant_be_cut or is_cell_invalid)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.COPY_CELL_VALUE), !has_selected_cell or is_cell_invalid)
-	edit_menu.set_item_disabled(edit_menu.get_item_index(EditMenuAction.PASTE_TO_CELL), !has_selected_cell or is_cell_invalid)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.DELETE_ENTRIES),
+		!has_selected_row,
+	)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.DUPLICATE_ENTRIES),
+		!has_selected_row,
+	)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.COPY_STRING_ID),
+		!has_selected_row,
+	)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.COPY_UID),
+		!has_selected_row,
+	)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.SHOW_IN_FILESYSTEM),
+		!has_selected_row,
+	)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.CUT_CELL_VALUE),
+		!has_selected_cell or cant_be_cut or is_cell_invalid,
+	)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.COPY_CELL_VALUE),
+		!has_selected_cell or is_cell_invalid,
+	)
+	edit_menu.set_item_disabled(
+		edit_menu.get_item_index(EditMenuAction.PASTE_TO_CELL),
+		!has_selected_cell or is_cell_invalid,
+	)
 
-	for select_action: int in [EditMenuAction.SELECT_ALL, EditMenuAction.INVERT_SELECTION, EditMenuAction.UNSELECT]:
+	for select_action: int in [
+		EditMenuAction.SELECT_ALL,
+		EditMenuAction.INVERT_SELECTION,
+		EditMenuAction.UNSELECT,
+	]:
 		edit_menu.set_item_disabled(edit_menu.get_item_index(select_action), false)
 
 	if data_table.selected_rows.size() > 1:
@@ -376,15 +417,23 @@ func toggle_edit_menu_items(edit_menu: PopupMenu) -> void:
 			tr("Duplicate Entries (%s)") % data_table.selected_rows.size(),
 		)
 	else:
-		edit_menu.set_item_text(edit_menu.get_item_index(EditMenuAction.DELETE_ENTRIES), tr("Delete Entry"))
-		edit_menu.set_item_text(edit_menu.get_item_index(EditMenuAction.DUPLICATE_ENTRIES), tr("Duplicate Entry"))
+		edit_menu.set_item_text(
+			edit_menu.get_item_index(EditMenuAction.DELETE_ENTRIES),
+			tr("Delete Entry"),
+		)
+		edit_menu.set_item_text(
+			edit_menu.get_item_index(EditMenuAction.DUPLICATE_ENTRIES),
+			tr("Duplicate Entry"),
+		)
 
 
 func _build_columns() -> Array[DataTable.ColumnConfig]:
 	var columns: Array[DataTable.ColumnConfig] = []
 
 	if not is_column_disabled(STRINGID_COLUMN):
-		var string_id_column: DataTable.ColumnConfig = DataTable.ColumnConfig.new.callv(STRINGID_COLUMN_CONFIG)
+		var string_id_column: DataTable.ColumnConfig = DataTable.ColumnConfig.new.callv(
+			STRINGID_COLUMN_CONFIG
+		)
 		string_id_column.custom_font_color = get_theme_color(&"accent_color", &"Editor")
 		string_id_column.h_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		string_id_column.frozen = STRINGID_COLUMN in current_cache_data.frozen_columns
@@ -407,11 +456,7 @@ func _build_columns() -> Array[DataTable.ColumnConfig]:
 		var hint: PropertyHint = prop[&"hint"]
 		var hint_string: String = prop[&"hint_string"]
 		var class_string: String = prop[&"class_name"]
-		var column := DataTable.ColumnConfig.new(
-			prop[&"name"],
-			prop_header,
-			prop_type,
-		)
+		var column := DataTable.ColumnConfig.new(prop[&"name"], prop_header, prop_type)
 		column.frozen = column.identifier in current_cache_data.frozen_columns
 
 		if hint:
@@ -463,7 +508,12 @@ func _can_display_property(property_info: Dictionary) -> bool:
 	)
 
 
-func _edit_entry_property(uid: StringName, property: StringName, old_value: Variant, new_value: Variant) -> void:
+func _edit_entry_property(
+	uid: StringName,
+	property: StringName,
+	old_value: Variant,
+	new_value: Variant,
+) -> void:
 	if not RegistryIO.is_uid_valid(uid):
 		return
 
@@ -477,13 +527,22 @@ func _edit_entry_property(uid: StringName, property: StringName, old_value: Vari
 		if res.get_script():
 			new_value = res.get_script().get_property_default_value(property)
 		else:
-			new_value = ClassDB.class_get_property_default_value(ClassUtils.get_type_name(res), property)
+			new_value = ClassDB.class_get_property_default_value(
+				ClassUtils.get_type_name(res),
+				property,
+			)
 
 	var valid := false
 	for prop_type: String in prop_types:
 		if (
-			(ClassUtils.is_type_builtin(typeof(new_value)) and type_string(typeof(new_value)) == prop_type)
-			or (typeof(new_value) in [TYPE_INT, TYPE_FLOAT] and prop_type in [type_string(TYPE_INT), type_string(TYPE_FLOAT)])
+			(
+				ClassUtils.is_type_builtin(typeof(new_value))
+				and type_string(typeof(new_value)) == prop_type
+			)
+			or (
+				typeof(new_value) in [TYPE_INT, TYPE_FLOAT]
+				and prop_type in [type_string(TYPE_INT), type_string(TYPE_FLOAT)]
+			)
 			or ClassUtils.is_class_of(new_value, prop_type)
 			or (new_value == null and typeof(old_value) == TYPE_OBJECT)
 		):
@@ -496,12 +555,8 @@ func _edit_entry_property(uid: StringName, property: StringName, old_value: Vari
 
 	if not valid:
 		YardLogger.error(
-			"Invalid type. Couldn't set %s (%s) to %s (%s)" % [
-				property,
-				", ".join(prop_types),
-				new_value,
-				ClassUtils.get_type_name(new_value),
-			],
+			"Invalid type. Couldn't set %s (%s) to %s (%s)"
+			% [property, ", ".join(prop_types), new_value, ClassUtils.get_type_name(new_value)],
 		)
 		return
 
@@ -517,7 +572,9 @@ func _edit_entry_property(uid: StringName, property: StringName, old_value: Vari
 func _ask_confirm_delete_entries() -> void:
 	var dialogtext := "Are you sure you want to delete %s?"
 	if data_table.selected_rows.size() > 1:
-		delete_entries_confirmation_dialog.dialog_text = dialogtext % ["these " + str(data_table.selected_rows.size()) + " entries"]
+		delete_entries_confirmation_dialog.dialog_text = dialogtext % [
+			"these " + str(data_table.selected_rows.size()) + " entries"
+		]
 	else:
 		delete_entries_confirmation_dialog.dialog_text = dialogtext % "this entry"
 	delete_entries_confirmation_dialog.show()
@@ -557,7 +614,10 @@ func _add_entry_from_picker(res: Resource, string_id: String) -> void:
 		var current_dir := EditorInterface.get_current_path().get_base_dir()
 		var save_path := current_dir.path_join(string_id + ".tres")
 		if ResourceLoader.exists(save_path):
-			YardLogger.error("A file already exists at '%s'. Choose a different String ID or save the resource manually first." % save_path)
+			YardLogger.error(
+				"A file already exists at '%s'. Choose a different String ID or save the resource manually first."
+				% save_path
+			)
 			return
 		var save_status := ResourceSaver.save(res, save_path, ResourceSaver.FLAG_CHANGE_PATH)
 		if save_status != OK:
@@ -580,7 +640,9 @@ func _add_entry_from_picker(res: Resource, string_id: String) -> void:
 		ERR_ALREADY_EXISTS:
 			YardLogger.error("An entry with the same UID already exists in the registry.")
 		ERR_CANT_ACQUIRE_RESOURCE:
-			YardLogger.error("This resource is not saved as a file. Click [b]v[/b] then [b]Save[/b] on the resource picker to save it first.")
+			YardLogger.error(
+				"This resource is not saved as a file. Click [b]v[/b] then [b]Save[/b] on the resource picker to save it first."
+			)
 		ERR_INVALID_PARAMETER:
 			YardLogger.error("The String ID is invalid. It must not start with 'uid://'.")
 		ERR_DATABASE_CANT_WRITE:
@@ -680,7 +742,12 @@ func _on_multiple_rows_selected(_ids: Array[StringName]) -> void:
 	pass
 
 
-func _on_cell_edited(string_id: StringName, column: StringName, old_value: Variant, new_value: Variant) -> void:
+func _on_cell_edited(
+	string_id: StringName,
+	column: StringName,
+	old_value: Variant,
+	new_value: Variant,
+) -> void:
 	if column not in [UID_COLUMN, STRINGID_COLUMN]:
 		var uid := current_registry.get_uid(string_id)
 		var property := column

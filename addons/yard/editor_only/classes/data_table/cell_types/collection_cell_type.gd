@@ -24,9 +24,23 @@ static func matches(column: ColumnConfig) -> bool:
 	return _is_dictionary(column) or _is_array(column)
 
 
-static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: ColumnConfig, style: CellStyle) -> void:
+static func draw_cell(
+	canvas: CanvasItem,
+	rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	style: CellStyle,
+) -> void:
 	var text := _format_collection_text(value, column)
-	draw_text(canvas, rect, text, resolve_font(column, style.font), style.font_size, column.h_alignment, resolve_text_color(column, style))
+	draw_text(
+		canvas,
+		rect,
+		text,
+		resolve_font(column, style.font),
+		style.font_size,
+		column.h_alignment,
+		resolve_text_color(column, style),
+	)
 
 
 static func get_tooltip(value: Variant, _column: ColumnConfig) -> String:
@@ -42,15 +56,24 @@ static func _is_dictionary(column: ColumnConfig) -> bool:
 
 
 static func _is_array_with_enum_values(column: ColumnConfig) -> bool:
-	return column.type == TYPE_ARRAY and column.hint_string and _is_enum_collection_hint(column.hint_string)
+	return (
+		column.type == TYPE_ARRAY and column.hint_string
+		and _is_enum_collection_hint(column.hint_string)
+	)
 
 
 static func _is_dict_with_enum_keys(column: ColumnConfig) -> bool:
-	return _is_dictionary(column) and column.hint_string and _is_enum_collection_hint(_get_dict_key_hint_part(column))
+	return (
+		_is_dictionary(column) and column.hint_string
+		and _is_enum_collection_hint(_get_dict_key_hint_part(column))
+	)
 
 
 static func _is_dict_with_enum_values(column: ColumnConfig) -> bool:
-	return _is_dictionary(column) and column.hint_string and _is_enum_collection_hint(_get_dict_value_hint_part(column))
+	return (
+		_is_dictionary(column) and column.hint_string
+		and _is_enum_collection_hint(_get_dict_value_hint_part(column))
+	)
 
 
 static func _is_enum_collection_hint(hint: String) -> bool:
@@ -66,11 +89,17 @@ static func _get_dict_value_hint_part(column: ColumnConfig) -> String:
 
 
 static func _get_values_map(column: ColumnConfig) -> Dictionary:
-	return column.get_cached(&"enum_values_map", parse_enum_hint_string.bind(_get_enum_value_hint_string(column)))
+	return column.get_cached(
+		&"enum_values_map",
+		parse_enum_hint_string.bind(_get_enum_value_hint_string(column)),
+	)
 
 
 static func _get_keys_map(column: ColumnConfig) -> Dictionary:
-	return column.get_cached(&"enum_keys_map", parse_enum_hint_string.bind(_get_enum_key_hint_string(column)))
+	return column.get_cached(
+		&"enum_keys_map",
+		parse_enum_hint_string.bind(_get_enum_key_hint_string(column)),
+	)
 
 
 static func _get_enum_value_hint_string(column: ColumnConfig) -> String:
@@ -100,10 +129,8 @@ static func _format_collection_text(collection: Variant, column: ColumnConfig) -
 			var key: Variant = items[idx]
 			var val: Variant = (collection as Dictionary)[key]
 			parts.append(
-				"%s: %s" % [
-					_format_element_text(key, keys_map),
-					_format_element_text(val, values_map),
-				],
+				"%s: %s"
+				% [_format_element_text(key, keys_map), _format_element_text(val, values_map)],
 			)
 		else:
 			parts.append(_format_element_text(items[idx], values_map))
@@ -139,9 +166,11 @@ static func _value_to_string_pretty(value: Variant, indent_level: int = 0) -> St
 			else:
 				formatted += "[\n"
 				for i: int in value.size():
-					formatted += (INDENT.repeat(indent_level + 1) +
-						_value_to_string_pretty(value[i], indent_level + 1) +
-						("," if i < value.size() - 1 else "") + "\n" )
+					formatted += (
+						INDENT.repeat(indent_level + 1)
+						+ _value_to_string_pretty(value[i], indent_level + 1)
+						+ ("," if i < value.size() - 1 else "") + "\n"
+					)
 				formatted += INDENT.repeat(indent_level) + "]"
 		TYPE_DICTIONARY:
 			if value.is_empty():
@@ -149,10 +178,11 @@ static func _value_to_string_pretty(value: Variant, indent_level: int = 0) -> St
 			else:
 				formatted += "{\n"
 				for i: int in value.size():
-					formatted += (INDENT.repeat(indent_level + 1) +
-						"\"" + value.keys()[i] + "\": " +
-						_value_to_string_pretty(value.values()[i], indent_level + 1) +
-						("," if i < value.size() - 1 else "") + "\n" )
+					formatted += (
+						INDENT.repeat(indent_level + 1) + "\"" + value.keys()[i]
+						+ "\": " + _value_to_string_pretty(value.values()[i], indent_level + 1)
+						+ ("," if i < value.size() - 1 else "") + "\n"
+					)
 				formatted += INDENT.repeat(indent_level) + "}"
 		_:
 			formatted += var_to_str(value)

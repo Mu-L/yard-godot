@@ -4,11 +4,18 @@
 # SPDX-License-Identifier: MIT
 extends "res://addons/yard/editor_only/classes/data_table/cell_types/cell_type.gd"
 
+
 static func matches(column: ColumnConfig) -> bool:
 	return column.type == TYPE_INT and column.property_hint == PROPERTY_HINT_FLAGS
 
 
-static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: ColumnConfig, style: CellStyle) -> void:
+static func draw_cell(
+	canvas: CanvasItem,
+	rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	style: CellStyle,
+) -> void:
 	var indices := _unpack_indices(value)
 	var keys := column.hint_string.split(",", false)
 	var selected_keys: Array[String] = []
@@ -22,7 +29,15 @@ static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: C
 		if not remaining_rect.has_area():
 			break
 		var key_width := font.get_string_size(key, HORIZONTAL_ALIGNMENT_LEFT, -1, style.font_size).x
-		draw_text(canvas, remaining_rect, key, font, style.font_size, HORIZONTAL_ALIGNMENT_LEFT, _hashed_color(key))
+		draw_text(
+			canvas,
+			remaining_rect,
+			key,
+			font,
+			style.font_size,
+			HORIZONTAL_ALIGNMENT_LEFT,
+			_hashed_color(key),
+		)
 		remaining_rect = remaining_rect.grow_side(SIDE_LEFT, -(key_width + x_margin * 2))
 	#var int_value := value as int
 	#var map: Dictionary = column.get_cached(&"enum_values_map", parse_enum_hint_string.bind(column.hint_string))
@@ -46,7 +61,13 @@ static func get_filter_key(value: Variant, column: ColumnConfig) -> Variant:
 	return " ".join(selected_keys)
 
 
-static func create_editor(owner: Control, _rect: Rect2, value: Variant, column: ColumnConfig, on_finished: Callable) -> Node:
+static func create_editor(
+	owner: Control,
+	_rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	on_finished: Callable,
+) -> Node:
 	var popup_menu := PopupMenu.new()
 	popup_menu.hide_on_checkable_item_selection = false
 	owner.add_child(popup_menu)
@@ -72,12 +93,12 @@ static func create_editor(owner: Control, _rect: Rect2, value: Variant, column: 
 
 	popup_menu.index_pressed.connect(
 		func(idx: int) -> void:
-			popup_menu.toggle_item_checked(idx)
+			popup_menu.toggle_item_checked(idx),
 	)
 	popup_menu.popup_hide.connect(
 		func() -> void:
 			await popup_menu.get_tree().create_timer(0.05).timeout
-			on_finished.call(true)
+			on_finished.call(true),
 	)
 
 	popup_menu.position = DisplayServer.mouse_get_position()

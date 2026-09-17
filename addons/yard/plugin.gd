@@ -42,8 +42,13 @@ func _enter_tree() -> void:
 	if not Engine.is_editor_hint():
 		return
 
-	_filesystem_create_context_menu_plugin = FILESYSTEM_CREATE_CONTEXT_MENU_PLUGIN.new(_filesystem_create_context_menu_plugin_callback)
-	add_context_menu_plugin(EditorContextMenuPlugin.CONTEXT_SLOT_FILESYSTEM_CREATE, _filesystem_create_context_menu_plugin)
+	_filesystem_create_context_menu_plugin = FILESYSTEM_CREATE_CONTEXT_MENU_PLUGIN.new(
+		_filesystem_create_context_menu_plugin_callback
+	)
+	add_context_menu_plugin(
+		EditorContextMenuPlugin.CONTEXT_SLOT_FILESYSTEM_CREATE,
+		_filesystem_create_context_menu_plugin,
+	)
 
 	_editor_inspector_plugin = EDITOR_INSPECTOR_PLUGIN.new()
 	add_inspector_plugin(_editor_inspector_plugin)
@@ -57,7 +62,10 @@ func _enter_tree() -> void:
 		_dock = ClassDB.instantiate(&"EditorDock") as Node
 		_dock.set(&"title", _get_plugin_name())
 		_dock.set(&"dock_icon", preload("res://addons/yard/editor_only/assets/yard.svg"))
-		_dock.set(&"default_slot", ClassDB.class_get_integer_constant(&"EditorDock", &"DOCK_SLOT_MAIN_SCREEN"))
+		_dock.set(
+			&"default_slot",
+			ClassDB.class_get_integer_constant(&"EditorDock", &"DOCK_SLOT_MAIN_SCREEN"),
+		)
 		_dock.add_child(_registry_editor)
 		call(&"add_dock", _dock)
 	else:
@@ -130,7 +138,9 @@ func _reimport_icons() -> void:
 	var icon: CompressedTexture2D = load("res://addons/yard/editor_only/assets/github_icon.svg")
 	var scale := EditorInterface.get_editor_scale()
 	if float(icon.get_width()) != scale * 16:
-		YardLogger.warn("YARD - Editor scale changed, reimporting icons. This might throw an error. Disregard.")
+		YardLogger.warn(
+			"YARD - Editor scale changed, reimporting icons. This might throw an error. Disregard."
+		)
 		EditorInterface.get_resource_filesystem().reimport_files(
 			PackedStringArray(
 				[

@@ -93,7 +93,12 @@ func _build_save_button() -> void:
 	add_child(_save_button)
 
 
-func _on_cell_input(event: InputEvent, atk_id: StringName, def_id: StringName, cell: Control) -> void:
+func _on_cell_input(
+	event: InputEvent,
+	atk_id: StringName,
+	def_id: StringName,
+	cell: Control,
+) -> void:
 	if event is InputEventMouseButton \
 			and event.button_index == MOUSE_BUTTON_LEFT \
 			and event.pressed:
@@ -185,10 +190,7 @@ func _on_save_pressed() -> void:
 		var err := ResourceSaver.save(elem) # saves to elem.resource_path, overwrites
 		if err != OK:
 			errors += 1
-			push_error(
-				"Failed to save '%s' (%s): error %d"
-				% [atk_id, elem.resource_path, err],
-			)
+			push_error("Failed to save '%s' (%s): error %d" % [atk_id, elem.resource_path, err])
 	if errors == 0:
 		_dirty.clear()
 		_save_button.visible = false

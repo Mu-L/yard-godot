@@ -36,7 +36,10 @@ enum Target {
 
 @export var name: String
 @export_multiline var description: String
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/elements.tres") var type: StringName = &"wild"
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/elements.tres",
+) var type: StringName = &"wild"
 @export var category: Category = Category.PHYSICAL
 
 @export_group("Effect")

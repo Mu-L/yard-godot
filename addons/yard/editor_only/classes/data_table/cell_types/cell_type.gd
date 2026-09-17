@@ -26,16 +26,40 @@ static func matches(_column: ColumnConfig) -> bool:
 	return true
 
 
-static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: ColumnConfig, style: CellStyle) -> void:
+static func draw_cell(
+	canvas: CanvasItem,
+	rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	style: CellStyle,
+) -> void:
 	var text := str(value) if value != null else ""
-	draw_text(canvas, rect, text, resolve_font(column, style.font), style.font_size, column.h_alignment, resolve_text_color(column, style))
+	draw_text(
+		canvas,
+		rect,
+		text,
+		resolve_font(column, style.font),
+		style.font_size,
+		column.h_alignment,
+		resolve_text_color(column, style),
+	)
 
 
-static func draw_text(canvas: CanvasItem, rect: Rect2, text: String, font: Font, font_size: int, h_align: HorizontalAlignment, color: Color) -> void:
+static func draw_text(
+	canvas: CanvasItem,
+	rect: Rect2,
+	text: String,
+	font: Font,
+	font_size: int,
+	h_align: HorizontalAlignment,
+	color: Color,
+) -> void:
 	var line := TextLine.new()
 	var x_margin: int = H_ALIGNMENT_MARGINS.get(h_align)
 	var width := rect.size.x - absf(x_margin)
-	var ellipsis_width := font.get_string_size(line.ellipsis_char, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+	var ellipsis_width := font \
+			.get_string_size(line.ellipsis_char, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size) \
+			.x
 
 	if width < ellipsis_width:
 		return
@@ -50,7 +74,12 @@ static func draw_text(canvas: CanvasItem, rect: Rect2, text: String, font: Font,
 	line.draw(canvas.get_canvas_item(), Vector2(rect.position.x + x_margin, top_y), color)
 
 
-static func get_text_baseline_y(font: Font, font_size: int, cell_y: float, cell_height: float) -> float:
+static func get_text_baseline_y(
+	font: Font,
+	font_size: int,
+	cell_y: float,
+	cell_height: float,
+) -> float:
 	var ascent := font.get_ascent(font_size)
 	var descent := font.get_descent(font_size)
 	return cell_y + (cell_height + ascent - descent) / 2.0
@@ -60,7 +89,11 @@ static func resolve_font(column: ColumnConfig, fallback_font: Font) -> Font:
 	return column.custom_font if column.custom_font else fallback_font
 
 
-static func resolve_text_color(column: ColumnConfig, style: CellStyle, override: Color = Color.TRANSPARENT) -> Color:
+static func resolve_text_color(
+	column: ColumnConfig,
+	style: CellStyle,
+	override: Color = Color.TRANSPARENT,
+) -> Color:
 	if override != Color.TRANSPARENT:
 		return override
 	if column.custom_font_color:
@@ -68,7 +101,11 @@ static func resolve_text_color(column: ColumnConfig, style: CellStyle, override:
 	return style.default_font_color
 
 
-static func fit_texture_rect(texture: Texture2D, container: Rect2, anchor_to_left := false) -> Rect2:
+static func fit_texture_rect(
+	texture: Texture2D,
+	container: Rect2,
+	anchor_to_left := false,
+) -> Rect2:
 	var tex_size := texture.get_size()
 	var tex_aspect := tex_size.x / tex_size.y
 	var cell_aspect := container.size.x / container.size.y
@@ -82,13 +119,31 @@ static func fit_texture_rect(texture: Texture2D, container: Rect2, anchor_to_lef
 	return Rect2(container.position + Vector2(offset_x, offset_y), thumb_size)
 
 
-static func draw_filtered_texture_rect(canvas: CanvasItem, pixelated_canvas_rid: RID, texture: Texture2D, rect: Rect2, frozen_width: float) -> void:
+static func draw_filtered_texture_rect(
+	canvas: CanvasItem,
+	pixelated_canvas_rid: RID,
+	texture: Texture2D,
+	rect: Rect2,
+	frozen_width: float,
+) -> void:
 	var ratio := rect.size / texture.get_size()
-	if minf(ratio.x, ratio.y) > 1.5 * EditorInterface.get_editor_scale() and rect.end.x > frozen_width:
+	if (
+		minf(ratio.x, ratio.y) > 1.5 * EditorInterface.get_editor_scale()
+		and rect.end.x > frozen_width
+	):
 		if texture is AtlasTexture:
-			RenderingServer.canvas_item_add_texture_rect_region(pixelated_canvas_rid, rect, texture.get_rid(), texture.region)
+			RenderingServer.canvas_item_add_texture_rect_region(
+				pixelated_canvas_rid,
+				rect,
+				texture.get_rid(),
+				texture.region,
+			)
 		else:
-			RenderingServer.canvas_item_add_texture_rect(pixelated_canvas_rid, rect, texture.get_rid())
+			RenderingServer.canvas_item_add_texture_rect(
+				pixelated_canvas_rid,
+				rect,
+				texture.get_rid(),
+			)
 	else:
 		canvas.draw_texture_rect(texture, rect, false)
 
@@ -102,7 +157,13 @@ static func has_editor() -> bool:
 	return false
 
 
-static func create_editor(_owner: Control, _rect: Rect2, _value: Variant, _column: ColumnConfig, _on_finished: Callable) -> Node:
+static func create_editor(
+	_owner: Control,
+	_rect: Rect2,
+	_value: Variant,
+	_column: ColumnConfig,
+	_on_finished: Callable,
+) -> Node:
 	return null
 
 
@@ -115,7 +176,13 @@ static func read_editor_value(_editor: Node, _column: ColumnConfig) -> Variant:
 ## unhandled. Return a Dictionary to claim it: &"value" (optional) applies
 ## immediately; &"commit" (default false) finalizes vs. keeps the
 ## interaction open for more events. A release must eventually commit.
-static func handle_input(_event: InputEvent, _rect: Rect2, _value: Variant, _column: ColumnConfig, _style: CellStyle) -> Dictionary:
+static func handle_input(
+	_event: InputEvent,
+	_rect: Rect2,
+	_value: Variant,
+	_column: ColumnConfig,
+	_style: CellStyle,
+) -> Dictionary:
 	return { }
 
 

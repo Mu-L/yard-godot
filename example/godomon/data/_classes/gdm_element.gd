@@ -10,6 +10,15 @@ extends Resource
 @export var color: Color
 @export var icon: Texture2D
 
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/elements.tres") var strong_against: Array[StringName] # damage x2
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/elements.tres") var weak_against: Array[StringName] # damage x0.5
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/elements.tres") var immune_targets: Array[StringName] # damage x0
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/elements.tres",
+) var strong_against: Array[StringName] # damage x2
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/elements.tres",
+) var weak_against: Array[StringName] # damage x0.5
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/elements.tres",
+) var immune_targets: Array[StringName] # damage x0

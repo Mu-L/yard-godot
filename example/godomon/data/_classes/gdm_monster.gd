@@ -78,8 +78,14 @@ enum BodyColor {
 
 @export var name: String
 @export var form_name: String
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/elements.tres") var type_1: StringName = &"wild"
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/elements.tres") var type_2: StringName
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/elements.tres",
+) var type_1: StringName = &"wild"
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/elements.tres",
+) var type_2: StringName
 @export var evolutions: Array[GdmEvolution]
 @export var flags: Array[StringName]
 
@@ -94,8 +100,7 @@ enum BodyColor {
 @export_group("Experience")
 @export var growth_rate: GrowthRate = GrowthRate.MEDIUM
 @export var base_exp: int = 100
-@export_subgroup("EVs")
-@export_range(0, 255, 1) var ev_hp: int = 0
+@export_subgroup("EVs") @export_range(0, 255, 1) var ev_hp: int = 0
 @export_range(0, 255, 1) var ev_attack: int = 0
 @export_range(0, 255, 1) var ev_defense: int = 0
 @export_range(0, 255, 1) var ev_sp_attack: int = 0
@@ -106,22 +111,48 @@ enum BodyColor {
 @export var gender_ratio: GenderRatio = GenderRatio.FEMALE_50_PERCENT
 @export_range(0, 255, 1) var catch_rate: int = 255
 @export_range(0, 255, 1) var happiness: int = 70
-@export_subgroup("Held Items")
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/items.tres") var wild_item_common: Array[StringName] # 50%
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/items.tres") var wild_item_uncommon: Array[StringName] # 5%
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/items.tres") var wild_item_rare: Array[StringName] # 1%
+@export_subgroup("Held Items") @export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/items.tres",
+) var wild_item_common: Array[StringName] # 50%
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/items.tres",
+) var wild_item_uncommon: Array[StringName] # 5%
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/items.tres",
+) var wild_item_rare: Array[StringName] # 1%
 
 @export_group("Moves & Abilities")
 @export var moves: Dictionary[StringName, int]
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/moves.tres") var tutor_moves: Array[StringName]
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/moves.tres") var egg_moves: Array[StringName]
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/abilities.tres") var abilities: Array[StringName]
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/abilities.tres") var hidden_abilities: Array[StringName]
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/moves.tres",
+) var tutor_moves: Array[StringName]
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/moves.tres",
+) var egg_moves: Array[StringName]
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/abilities.tres",
+) var abilities: Array[StringName]
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/abilities.tres",
+) var hidden_abilities: Array[StringName]
 
 @export_group("Breeding")
 @export var step_cycles: int = 1
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/items.tres") var incense: StringName
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/monsters.tres") var custom_offspring: Array[StringName]
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/items.tres",
+) var incense: StringName
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/monsters.tres",
+) var custom_offspring: Array[StringName]
 @export var egg_groups: int = EggGroup.UNDISCOVERED # See `_validate_property`
 
 @export_group("Dex Info")
@@ -144,8 +175,7 @@ enum BodyColor {
 @export var overworld_normal: CompressedTexture2D
 @export var overworld_shiny: CompressedTexture2D
 @export var dex_footprint: CompressedTexture2D
-@export_subgroup("Metrics")
-@export var front_offset: Vector2i
+@export_subgroup("Metrics") @export var front_offset: Vector2i
 @export var back_offset: Vector2i
 
 @export_group("Audio")

@@ -74,7 +74,10 @@ static func get_inheritance_list(class_type: Variant, include_self: bool = false
 	return inheritance_list
 
 
-static func get_script_inheritance_list(script: Script, include_self: bool = false) -> Array[Script]:
+static func get_script_inheritance_list(
+	script: Script,
+	include_self: bool = false,
+) -> Array[Script]:
 	var result: Array[Script] = []
 	var current: Script = script.get_base_script() if not include_self else script
 
@@ -90,12 +93,17 @@ static func get_script_inheritance_list(script: Script, include_self: bool = fal
 ## [code]resource_path[/code] if no [code]class_name[/code] is declared.
 ## Native class ancestors are appended after the script chain.
 ## [br]If [param include_self] is [code]true[/code], [param script] itself is included first.
-static func get_script_inheritance_list_strings(script: Script, include_self: bool = false) -> Array[String]:
+static func get_script_inheritance_list_strings(
+	script: Script,
+	include_self: bool = false,
+) -> Array[String]:
 	var inheritance_list_builtin := get_inheritance_list(script)
 	var inheritance_script_list := get_script_inheritance_list(script, include_self)
 	var inheritance_script_list_string: Array[String]
 	for s: Script in inheritance_script_list:
-		inheritance_script_list_string.append(str(s.get_global_name()) if s.get_global_name() else s.resource_path)
+		inheritance_script_list_string.append(
+			str(s.get_global_name()) if s.get_global_name() else s.resource_path
+		)
 
 	return inheritance_script_list_string + inheritance_list_builtin
 
@@ -113,9 +121,11 @@ static func sort_by_inheritance(classes_names: Array[String]) -> Array[String]:
 	var cache := { }
 	var ancestors_of := func(entry: String) -> Array:
 		if entry not in cache:
-			cache[entry] = (get_script_inheritance_list_strings(load(entry), false)
+			cache[entry] = (
+				get_script_inheritance_list_strings(load(entry), false)
 				if entry.begins_with("res://")
-				else get_inheritance_list(entry, false) )
+				else get_inheritance_list(entry, false)
+			)
 		return cache[entry]
 
 	# Build graph: edge i→j means class[i] is ancestor of class[j] (must come before)
@@ -133,7 +143,12 @@ static func sort_by_inheritance(classes_names: Array[String]) -> Array[String]:
 	# Kahn's topological sort
 	var queue: Array[int]
 	var result: Array[String] = []
-	queue.assign(range(n).filter(func(i: int) -> bool: return in_degree[i] == 0))
+	queue.assign(
+		range(n).filter(
+			func(i: int) -> bool:
+				return in_degree[i] == 0,
+		)
+	)
 	while not queue.is_empty():
 		var idx: int = queue.pop_front()
 		result.append(classes_names[idx])
@@ -168,8 +183,7 @@ static func get_class_name_or_path_from_prop(property_info: Dictionary) -> Strin
 ## from [method Object.get_property_list].
 static func is_class_property(property_info: Dictionary) -> bool:
 	return (
-		property_info[&"name"] != ""
-		and property_info[&"type"] == TYPE_NIL
+		property_info[&"name"] != "" and property_info[&"type"] == TYPE_NIL
 		and property_info[&"usage"] & (PROPERTY_USAGE_CATEGORY | PROPERTY_USAGE_GROUP) != 0
 		and property_info[&"hint_string"] != ""
 	)
@@ -233,8 +247,7 @@ static func get_type(classname: String) -> Object:
 				break
 
 	elif (
-		ClassDB.class_exists(classname)
-		and ClassDB.is_class_enabled(classname)
+		ClassDB.class_exists(classname) and ClassDB.is_class_enabled(classname)
 		#and not GDScriptUtilities.native_classes_invalid.has(classname)
 	):
 		result = get_type_unsafe(classname)

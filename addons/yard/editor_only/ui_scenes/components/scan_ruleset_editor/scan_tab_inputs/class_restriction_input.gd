@@ -69,8 +69,14 @@ func render_validation_results(args: Variant) -> void:
 
 
 func _on_class_list_dialog_button_pressed() -> void:
-	request_action.emit(REQUEST_CLASS_RESTRICTION_CLASS_LIST_DIALOG_ACTION, class_restriction_line_edit.text)
+	request_action.emit(
+		REQUEST_CLASS_RESTRICTION_CLASS_LIST_DIALOG_ACTION,
+		class_restriction_line_edit.text,
+	)
 
 
 func _on_class_filesystem_button_pressed() -> void:
-	request_action.emit(REQUEST_CLASS_RESTRICTION_FILE_DIALOG_ACTION, class_restriction_line_edit.text)
+	request_action.emit(
+		REQUEST_CLASS_RESTRICTION_FILE_DIALOG_ACTION,
+		class_restriction_line_edit.text,
+	)

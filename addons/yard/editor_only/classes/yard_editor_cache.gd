@@ -63,12 +63,32 @@ class RegistryCacheData:
 		if data.version != _REGISTRY_CACHE_VERSION:
 			RegistryCacheData._update_format(data, cfg)
 
-		data.disabled_columns = cfg.get_value(_SECTION_TABLE, "disabled_columns", data.disabled_columns)
+		data.disabled_columns = cfg.get_value(
+			_SECTION_TABLE,
+			"disabled_columns",
+			data.disabled_columns,
+		)
 		data.frozen_columns = cfg.get_value(_SECTION_TABLE, "frozen_columns", data.frozen_columns)
-		data.parent_props_first = cfg.get_value(_SECTION_TABLE, "parent_props_first", data.parent_props_first)
-		data.uid_column_width = cfg.get_value(_SECTION_TABLE, "uid_column_width", data.uid_column_width)
-		data.string_id_column_width = cfg.get_value(_SECTION_TABLE, "string_id_column_width", data.string_id_column_width)
-		data.property_columns_widths = cfg.get_value(_SECTION_TABLE, "property_columns_widths", data.property_columns_widths)
+		data.parent_props_first = cfg.get_value(
+			_SECTION_TABLE,
+			"parent_props_first",
+			data.parent_props_first,
+		)
+		data.uid_column_width = cfg.get_value(
+			_SECTION_TABLE,
+			"uid_column_width",
+			data.uid_column_width,
+		)
+		data.string_id_column_width = cfg.get_value(
+			_SECTION_TABLE,
+			"string_id_column_width",
+			data.string_id_column_width,
+		)
+		data.property_columns_widths = cfg.get_value(
+			_SECTION_TABLE,
+			"property_columns_widths",
+			data.property_columns_widths,
+		)
 		return data
 
 
@@ -113,7 +133,11 @@ class EditorStateData:
 		var cfg := ConfigFile.new()
 		cfg.set_value(_SECTION_GENERAL, "version", version)
 		cfg.set_value(_SECTION_RECENT, "uids", recent_registry_uids.filter(RegistryIO.is_uid_valid))
-		cfg.set_value(_SECTION_OPENED, "uids", opened_registries.keys().filter(RegistryIO.is_uid_valid))
+		cfg.set_value(
+			_SECTION_OPENED,
+			"uids",
+			opened_registries.keys().filter(RegistryIO.is_uid_valid),
+		)
 		DirAccess.make_dir_recursive_absolute(_BASE_DIR)
 		return cfg.save(_STATE_FILE)
 

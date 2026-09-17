@@ -185,9 +185,9 @@ func get_indexed_properties() -> Array[StringName]:
 ## [param type_hint] and [param cache_mode] are passed down to
 ## [method ResourceLoader.load].
 func load_entry(
-		id: StringName,
-		type_hint: String = "",
-		cache_mode: ResourceLoader.CacheMode = ResourceLoader.CACHE_MODE_REUSE,
+	id: StringName,
+	type_hint: String = "",
+	cache_mode: ResourceLoader.CacheMode = ResourceLoader.CACHE_MODE_REUSE,
 ) -> Resource:
 	var uid := get_uid(id)
 	if uid == &"" or not ResourceLoader.exists(uid):
@@ -203,18 +203,14 @@ func load_entry(
 ## [param type_hint] and [param cache_mode] are passed down to
 ## [method ResourceLoader.load].
 func load_all_blocking(
-		type_hint: String = "",
-		cache_mode: ResourceLoader.CacheMode = ResourceLoader.CACHE_MODE_REUSE,
+	type_hint: String = "",
+	cache_mode: ResourceLoader.CacheMode = ResourceLoader.CACHE_MODE_REUSE,
 ) -> Dictionary[StringName, Resource]:
 	var dict: Dictionary[StringName, Resource] = { }
 
 	for uid in get_all_uids():
 		if not uid == &"" and ResourceLoader.exists(uid):
-			dict[_uids_to_string_ids[uid]] = ResourceLoader.load(
-				uid,
-				type_hint,
-				cache_mode,
-			)
+			dict[_uids_to_string_ids[uid]] = ResourceLoader.load(uid, type_hint, cache_mode)
 
 	return dict
 
@@ -224,9 +220,9 @@ func load_all_blocking(
 ## and retrieve loaded resources as they become available.[br][br]
 ## See also [method ResourceLoader.load_threaded_request].
 func load_all_threaded_request(
-		type_hint: String = "",
-		use_sub_threads: bool = false,
-		cache_mode := ResourceLoader.CACHE_MODE_REUSE,
+	type_hint: String = "",
+	use_sub_threads: bool = false,
+	cache_mode := ResourceLoader.CACHE_MODE_REUSE,
 ) -> RegistryLoadTracker:
 	var tracker := RegistryLoadTracker.new()
 
@@ -437,7 +433,10 @@ class RegistryLoadTracker extends RefCounted:
 					var new_status := ResourceLoader.load_threaded_get_status(uid, res_progress)
 					n_res_loaded += res_progress.front()
 					__status[string_id] = new_status
-					if new_status == ResourceLoader.THREAD_LOAD_LOADED and __resources[string_id] == null:
+					if (
+						new_status == ResourceLoader.THREAD_LOAD_LOADED
+						and __resources[string_id] == null
+					):
 						__resources[string_id] = ResourceLoader.load_threaded_get(uid)
 
 		__progress = n_res_loaded / __requested.size()

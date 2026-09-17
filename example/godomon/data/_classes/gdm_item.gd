@@ -39,7 +39,10 @@ enum BattleUse {
 ## Whether the item is consumed when used.
 @export var consumable: bool = true
 ## The move taught, if this item is a TM/HM/TR (field_use above)
-@export_custom(Registry.PROPERTY_HINT_CUSTOM, "res://example/godomon/data/moves.tres") var move: StringName
+@export_custom(
+	Registry.PROPERTY_HINT_CUSTOM,
+	"res://example/godomon/data/moves.tres",
+) var move: StringName
 
 @export_group("Bag")
 ## Bag pocket this item is sorted into (adapt to your bag structure)

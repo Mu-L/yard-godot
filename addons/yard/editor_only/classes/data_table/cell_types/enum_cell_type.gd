@@ -7,20 +7,38 @@ extends "res://addons/yard/editor_only/classes/data_table/cell_types/cell_type.g
 ## Draw color is a deterministic pseudo-random hash of the display string,
 ## ignoring the column's normal font-color resolution.
 
+
 static func matches(column: ColumnConfig) -> bool:
 	return column.property_hint == PROPERTY_HINT_ENUM
 
 
-static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: ColumnConfig, style: CellStyle) -> void:
+static func draw_cell(
+	canvas: CanvasItem,
+	rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	style: CellStyle,
+) -> void:
 	var value_str: String
 	if not _is_numeric(column):
 		value_str = str(value)
 	else:
 		var int_value := value as int
-		var map: Dictionary = column.get_cached(&"enum_values_map", parse_enum_hint_string.bind(column.hint_string))
+		var map: Dictionary = column.get_cached(
+			&"enum_values_map",
+			parse_enum_hint_string.bind(column.hint_string),
+		)
 		value_str = "%s:%s" % [map[int_value], int_value] if map.has(int_value) else "?:%d" % int_value
 
-	draw_text(canvas, rect, value_str, resolve_font(column, style.font), style.font_size, HORIZONTAL_ALIGNMENT_CENTER, _hashed_color(value_str))
+	draw_text(
+		canvas,
+		rect,
+		value_str,
+		resolve_font(column, style.font),
+		style.font_size,
+		HORIZONTAL_ALIGNMENT_CENTER,
+		_hashed_color(value_str),
+	)
 
 
 static func has_editor() -> bool:
@@ -33,7 +51,13 @@ static func get_sort_key(value: Variant, column: ColumnConfig) -> Variant:
 	return str(value)
 
 
-static func create_editor(owner: Control, _rect: Rect2, value: Variant, column: ColumnConfig, on_finished: Callable) -> Node:
+static func create_editor(
+	owner: Control,
+	_rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	on_finished: Callable,
+) -> Node:
 	var popup_menu := PopupMenu.new()
 	owner.add_child(popup_menu)
 
@@ -64,12 +88,12 @@ static func create_editor(owner: Control, _rect: Rect2, value: Variant, column: 
 			if checked_idx != -1:
 				popup_menu.set_item_checked(checked_idx, false)
 			popup_menu.set_item_checked(idx, true)
-			on_finished.call(true) # Not good. Why does it know callback signature?!
+			on_finished.call(true), # Not good. Why does it know callback signature?!
 	)
 	popup_menu.popup_hide.connect(
 		func() -> void:
 			await popup_menu.get_tree().create_timer(0.05).timeout
-			on_finished.call(false) # Same issue
+			on_finished.call(false), # Same issue
 	)
 
 	popup_menu.position = DisplayServer.mouse_get_position()

@@ -14,9 +14,23 @@ static func matches(column: ColumnConfig) -> bool:
 	return column.type == TYPE_OBJECT and column.property_hint == PROPERTY_HINT_RESOURCE_TYPE
 
 
-static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: ColumnConfig, style: CellStyle) -> void:
+static func draw_cell(
+	canvas: CanvasItem,
+	rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	style: CellStyle,
+) -> void:
 	if value is not Resource:
-		draw_text(canvas, rect, "<empty>", resolve_font(column, style.font), style.font_size, column.h_alignment, resolve_text_color(column, style))
+		draw_text(
+			canvas,
+			rect,
+			"<empty>",
+			resolve_font(column, style.font),
+			style.font_size,
+			column.h_alignment,
+			resolve_text_color(column, style),
+		)
 		return
 
 	var inner := rect.grow(-2.0)
@@ -27,15 +41,32 @@ static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: C
 	var label := "<" + res.resource_path.get_file() + ">"
 	var x_margin_val: int = H_ALIGNMENT_MARGINS.get(HORIZONTAL_ALIGNMENT_LEFT)
 	var thumb_width := 0.0
-	var texture: Texture2D = res if res is Texture2D else style.get_thumbnail.call(res.resource_path, ClassUtils.get_type_name(res))
+	var texture: Texture2D = res if res is Texture2D else style.get_thumbnail.call(
+		res.resource_path,
+		ClassUtils.get_type_name(res),
+	)
 	if texture != null:
 		var thumb_rect := fit_texture_rect(texture, inner, true)
 		thumb_rect.position.x += x_margin_val
 		thumb_width = thumb_rect.size.x
-		draw_filtered_texture_rect(canvas, style.pixelated_canvas_rid, texture, thumb_rect, style.frozen_width)
+		draw_filtered_texture_rect(
+			canvas,
+			style.pixelated_canvas_rid,
+			texture,
+			thumb_rect,
+			style.frozen_width,
+		)
 
 	var text_rect := inner.grow_individual(-thumb_width - x_margin_val, 0, 0, 0)
-	draw_text(canvas, text_rect, label, resolve_font(column, style.font), style.font_size, column.h_alignment, resolve_text_color(column, style))
+	draw_text(
+		canvas,
+		text_rect,
+		label,
+		resolve_font(column, style.font),
+		style.font_size,
+		column.h_alignment,
+		resolve_text_color(column, style),
+	)
 
 
 static func has_editor() -> bool:
@@ -51,7 +82,13 @@ static func get_sort_key(value: Variant, _column: ColumnConfig) -> Variant:
 	return str(value)
 
 
-static func create_editor(owner: Control, _rect: Rect2, _value: Variant, column: ColumnConfig, on_finished: Callable) -> Node:
+static func create_editor(
+	owner: Control,
+	_rect: Rect2,
+	_value: Variant,
+	column: ColumnConfig,
+	on_finished: Callable,
+) -> Node:
 	var editor := EditorResourcePicker.new()
 	owner.add_child(editor)
 	editor.edited_resource = null
@@ -60,7 +97,10 @@ static func create_editor(owner: Control, _rect: Rect2, _value: Variant, column:
 		var valid_types := Array(column.hint_string.split(",", false)).filter(ClassUtils.is_valid)
 		if not valid_types.is_empty():
 			editor.base_type = ",".join(valid_types)
-	editor.resource_changed.connect(func(_res: Resource) -> void: on_finished.call(true))
+	editor.resource_changed.connect(
+		func(_res: Resource) -> void:
+			on_finished.call(true),
+	)
 
 	for child in editor.get_children(true):
 		if child is Button and child.tooltip_text == "Quick Load":

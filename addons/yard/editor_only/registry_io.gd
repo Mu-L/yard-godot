@@ -331,11 +331,15 @@ static func dir_has_matching_resource(
 	compiled_re_ex: RegEx = null,
 ) -> bool:
 	var recursive := scan_ruleset.recursive_scan
-	var re_include := compiled_re_in if compiled_re_in else _compile_regex(
-		scan_ruleset.scan_regex_include
+	var re_include := (
+		compiled_re_in
+		if compiled_re_in
+		else _compile_regex(scan_ruleset.scan_regex_include)
 	)
-	var re_exclude := compiled_re_ex if compiled_re_ex else _compile_regex(
-		scan_ruleset.scan_regex_exclude
+	var re_exclude := (
+		compiled_re_ex
+		if compiled_re_ex
+		else _compile_regex(scan_ruleset.scan_regex_exclude)
 	)
 	var dir := DirAccess.open(path)
 	if dir == null:
@@ -364,13 +368,15 @@ static func dir_has_matching_resource(
 				return true
 		elif (
 			ResourceLoader.exists(abs_next_path)
-			and (ignore_scan_filters
-			or _path_passes_scan_filters(
-				rel_next_path,
-				re_include,
-				re_exclude,
-				scan_ruleset.allowed_file_extensions,
-			))
+			and (
+				ignore_scan_filters
+				or _path_passes_scan_filters(
+					rel_next_path,
+					re_include,
+					re_exclude,
+					scan_ruleset.allowed_file_extensions,
+				)
+			)
 		):
 			var res := load(abs_next_path)
 			if does_resource_match_class_restrictions(res, scan_ruleset.class_restrictions):
@@ -423,13 +429,15 @@ static func dir_get_matching_resources(
 			)
 		elif (
 			ResourceLoader.exists(abs_next_path)
-			and (ignore_scan_filters
-			or _path_passes_scan_filters(
-				rel_next_path,
-				re_include,
-				re_exclude,
-				scan_ruleset.allowed_file_extensions,
-			))
+			and (
+				ignore_scan_filters
+				or _path_passes_scan_filters(
+					rel_next_path,
+					re_include,
+					re_exclude,
+					scan_ruleset.allowed_file_extensions,
+				)
+			)
 		):
 			var res := load(abs_next_path)
 			if does_resource_match_class_restrictions(res, scan_ruleset.class_restrictions):
@@ -765,9 +773,8 @@ class RegistryScanRuleset:
 			)
 			var their_value: Variant = (
 				other_ruleset[property_key]
-				if other_default_ruleset == null or other_ruleset.override_properties.has(
-					property_key
-				)
+				if other_default_ruleset == null
+				or other_ruleset.override_properties.has(property_key)
 				else other_default_ruleset[property_key]
 			)
 			if our_value != their_value:
@@ -783,9 +790,11 @@ class RegistryScanRuleset:
 	) -> RegistryScanRuleset:
 		var compiled_ruleset := RegistryScanRuleset.new()
 		for property_key in RULESET_PROPERTY_KEYS:
-			compiled_ruleset[property_key] = self[property_key] if override_properties.has(
-				property_key
-			) else default_ruleset[property_key]
+			compiled_ruleset[property_key] = (
+				self[property_key]
+				if override_properties.has(property_key)
+				else default_ruleset[property_key]
+			)
 		return compiled_ruleset
 
 

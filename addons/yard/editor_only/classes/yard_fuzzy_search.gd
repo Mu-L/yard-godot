@@ -73,7 +73,7 @@ func set_query(p_query: String, p_case_sensitive: bool = (not _is_lowercase(p_qu
 		func(a: FuzzySearchToken, b: FuzzySearchToken) -> bool:
 			if a.string.length() == b.string.length():
 				return a.idx < b.idx
-			return a.string.length() > b.string.length()
+			return a.string.length() > b.string.length(),
 	)
 
 
@@ -173,7 +173,7 @@ func _sort_and_filter(p_results: Array[FuzzySearchResult]) -> void:
 				if a.target.length() == b.target.length():
 					return a.target < b.target
 				return a.target.length() < b.target.length()
-			return a.score > b.score
+			return a.score > b.score,
 	)
 
 	# En C++: partial_sort si > max_results. Ici: tri complet puis resize (même résultat, perf différente).
@@ -202,7 +202,12 @@ class FuzzySearchToken:
 		return true
 
 
-	func try_fuzzy_match(p_match: FuzzyTokenMatch, p_target: String, p_offset: int, p_miss_budget: int) -> bool:
+	func try_fuzzy_match(
+		p_match: FuzzyTokenMatch,
+		p_target: String,
+		p_offset: int,
+		p_miss_budget: int,
+	) -> bool:
 		p_match._reset(idx, string.length())
 
 		var run_start := -1
@@ -262,7 +267,10 @@ class FuzzyTokenMatch:
 	func add_substring(p_substring_start: int, p_substring_length: int) -> void:
 		substrings.append(Vector2i(p_substring_start, p_substring_length))
 		matched_length += p_substring_length
-		var substring_interval := Vector2i(p_substring_start, p_substring_start + p_substring_length - 1)
+		var substring_interval := Vector2i(
+			p_substring_start,
+			p_substring_start + p_substring_length - 1,
+		)
 		interval = YardFuzzySearch._extend_interval(interval, substring_interval)
 
 
@@ -271,7 +279,10 @@ class FuzzyTokenMatch:
 
 
 	func intersects(p_other_interval: Vector2i) -> bool:
-		if not YardFuzzySearch._is_valid_interval(interval) or not YardFuzzySearch._is_valid_interval(p_other_interval):
+		if (
+			not YardFuzzySearch._is_valid_interval(interval)
+			or not YardFuzzySearch._is_valid_interval(p_other_interval)
+		):
 			return false
 		return interval.y >= p_other_interval.x and interval.x <= p_other_interval.y
 
@@ -336,7 +347,7 @@ class FuzzySearchResult:
 
 			# Score matches on a word boundary higher than matches within a word.
 			if YardFuzzySearch._is_word_boundary(target, substring.x - 1) \
-			or YardFuzzySearch._is_word_boundary(target, substring.x + substring.y):
+					or YardFuzzySearch._is_word_boundary(target, substring.x + substring.y):
 				substring_score += 4
 
 			# Score exact query matches higher than non-compact subsequence matches.

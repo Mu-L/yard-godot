@@ -11,12 +11,29 @@ const INVALID_UID := "uid://<invalid>"
 
 
 static func matches(column: ColumnConfig) -> bool:
-	return column.type == TYPE_STRING and column.property_hint in [PROPERTY_HINT_FILE, PROPERTY_HINT_FILE_PATH, PROPERTY_HINT_DIR]
+	return (
+		column.type == TYPE_STRING
+		and column.property_hint in [PROPERTY_HINT_FILE, PROPERTY_HINT_FILE_PATH, PROPERTY_HINT_DIR]
+	)
 
 
-static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: ColumnConfig, style: CellStyle) -> void:
+static func draw_cell(
+	canvas: CanvasItem,
+	rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	style: CellStyle,
+) -> void:
 	if column.property_hint != PROPERTY_HINT_FILE:
-		draw_text(canvas, rect, str(value) if value != null else "", resolve_font(column, style.mono_font), style.font_size, column.h_alignment, resolve_text_color(column, style))
+		draw_text(
+			canvas,
+			rect,
+			str(value) if value != null else "",
+			resolve_font(column, style.mono_font),
+			style.font_size,
+			column.h_alignment,
+			resolve_text_color(column, style),
+		)
 		return
 
 	var is_invalid_uid: bool = value == INVALID_UID
@@ -36,20 +53,48 @@ static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: C
 		var thumb_rect := fit_texture_rect(texture, inner, true)
 		thumb_rect.position.x += x_margin_val
 		thumb_width = thumb_rect.size.x
-		draw_filtered_texture_rect(canvas, style.pixelated_canvas_rid, texture, thumb_rect, style.frozen_width)
+		draw_filtered_texture_rect(
+			canvas,
+			style.pixelated_canvas_rid,
+			texture,
+			thumb_rect,
+			style.frozen_width,
+		)
 
 	var text_rect := inner.grow_individual(-thumb_width - x_margin_val, 0, 0, 0)
 	if is_invalid_uid:
-		draw_text(canvas, text_rect, str(value), resolve_font(column, style.mono_font), style.font_size, column.h_alignment, style.error_color)
+		draw_text(
+			canvas,
+			text_rect,
+			str(value),
+			resolve_font(column, style.mono_font),
+			style.font_size,
+			column.h_alignment,
+			style.error_color,
+		)
 	else:
-		draw_text(canvas, text_rect, str(value) if value != null else "", resolve_font(column, style.mono_font), style.font_size, column.h_alignment, resolve_text_color(column, style))
+		draw_text(
+			canvas,
+			text_rect,
+			str(value) if value != null else "",
+			resolve_font(column, style.mono_font),
+			style.font_size,
+			column.h_alignment,
+			resolve_text_color(column, style),
+		)
 
 
 static func has_editor() -> bool:
 	return true
 
 
-static func create_editor(owner: Control, _rect: Rect2, value: Variant, column: ColumnConfig, on_finished: Callable) -> Node:
+static func create_editor(
+	owner: Control,
+	_rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	on_finished: Callable,
+) -> Node:
 	var editor := EditorFileDialog.new()
 	owner.add_child(editor)
 	editor.disable_overwrite_warning = true

@@ -12,7 +12,10 @@ func _get_name() -> String:
 	return "YARD - Yet Another Resource Database"
 
 
-func _begin_customize_resources(_platform: EditorExportPlatform, _features: PackedStringArray) -> bool:
+func _begin_customize_resources(
+	_platform: EditorExportPlatform,
+	_features: PackedStringArray,
+) -> bool:
 	return true
 
 

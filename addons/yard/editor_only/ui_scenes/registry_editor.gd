@@ -87,7 +87,8 @@ func _ready() -> void:
 	_file_dialog.title = tr("Open Registry")
 	var filter := ", ".join(
 		RegistryIO.REGISTRY_FILE_EXTENSIONS.map(
-			func(e: String) -> String: return "*.%s" % e
+			func(e: String) -> String:
+				return "*.%s" % e,
 		),
 	)
 	_file_dialog.add_filter(filter, "Registries")
@@ -249,7 +250,10 @@ func _setup_shortcuts() -> void:
 			if file_menu.get_item_index(action) != -1:
 				file_menu.set_item_shortcut(file_menu.get_item_index(action), shortcut)
 			if registry_context_menu.get_item_index(action) != -1:
-				registry_context_menu.set_item_shortcut(registry_context_menu.get_item_index(action), shortcut)
+				registry_context_menu.set_item_shortcut(
+					registry_context_menu.get_item_index(action),
+					shortcut,
+				)
 
 	var edit_menu := edit_menu_button.get_popup()
 	for action: EditMenuAction in edit_action_shortcuts:
@@ -295,7 +299,12 @@ func _get_uids_to_show(all_uids: Array[String], display_name_by_uid: Dictionary)
 		return all_uids
 
 	_fuz.set_query(filter_text)
-	var targets := PackedStringArray(all_uids.map(func(uid: String) -> String: return display_name_by_uid[uid]))
+	var targets := PackedStringArray(
+		all_uids.map(
+			func(uid: String) -> String:
+				return display_name_by_uid[uid],
+		)
+	)
 	var fuzzy_results: Array[FuzzySearchResult] = []
 	_fuz.search_all(targets, fuzzy_results)
 	var result: Array[String] = []
@@ -355,7 +364,11 @@ func _toggle_visibility_topbar_buttons() -> void:
 		else null
 	)
 
-	for control: Control in [registry_buttons_v_separator, registry_settings_button, columns_menu_button]:
+	for control: Control in [
+		registry_buttons_v_separator,
+		registry_settings_button,
+		columns_menu_button,
+	]:
 		control.visible = has_registry
 
 	rescan_button.visible = has_registry and registry_settings.has_any_scan_directory()
@@ -384,7 +397,12 @@ func _build_registry_display_names(uids: Array[String]) -> Dictionary:
 			result[group[0]] = base
 			continue
 
-		var max_depth: int = group.map(func(uid: String) -> int: return parts_by_uid[uid].size()).max()
+		var max_depth: int = group \
+				.map(
+			func(uid: String) -> int:
+				return parts_by_uid[uid].size(),
+		) \
+				.max()
 		var found_unique := false
 		for level in range(1, max_depth):
 			var seen: Dictionary = { }
@@ -457,7 +475,10 @@ func _populate_open_recent_submenu() -> void:
 			recent.add_item(ResourceUID.uid_to_path(entry))
 	recent.add_separator()
 	recent.add_item(tr("Clear Recent Registries"), FileMenuAction.CLEAR_RECENT)
-	recent.set_item_disabled(recent.get_item_index(FileMenuAction.CLEAR_RECENT), recent.get_item_count() == 2) # only the "Clear" item
+	recent.set_item_disabled(
+		recent.get_item_index(FileMenuAction.CLEAR_RECENT),
+		recent.get_item_count() == 2,
+	) # only the "Clear" item
 	recent.id_pressed.connect(
 		func(id: int) -> void:
 			if id == FileMenuAction.CLEAR_RECENT:
@@ -466,20 +487,18 @@ func _populate_open_recent_submenu() -> void:
 			var uid := _editor_state_data.recent_registry_uids[id]
 			if RegistryIO.is_uid_valid(uid):
 				@warning_ignore("standalone_ternary")
-				select_registry(uid) if _editor_state_data.opened_registries.has(uid) else open_registry(load(uid))
+				select_registry(uid) if _editor_state_data.opened_registries.has(uid) else open_registry(
+					load(uid)
+				),
 	)
 
-	file_menu.set_item_submenu_node(
-		file_menu.get_item_index(FileMenuAction.OPEN_RECENT),
-		recent,
-	)
+	file_menu.set_item_submenu_node(file_menu.get_item_index(FileMenuAction.OPEN_RECENT), recent)
 
 
 func _populate_columns_popup_menu() -> void:
 	var popup := columns_menu_button.get_popup()
 	popup.clear(true)
 	# free_submenus=true, avoids leaking a PopupMenu Node per column per open
-
 	if not registry_table_view.current_registry:
 		popup.add_separator("Select a registry first")
 		return
@@ -488,8 +507,8 @@ func _populate_columns_popup_menu() -> void:
 		popup,
 		tr("Show Parent Properties First"),
 		tr(
-			"Reorder columns so parent class properties appear before subclass ones." +
-			"\nBy default, columns follow the inspector order (subclass properties first).",
+			"Reorder columns so parent class properties appear before subclass ones."
+			+ "\nBy default, columns follow the inspector order (subclass properties first).",
 		),
 		registry_table_view.current_cache_data.parent_props_first,
 	)
@@ -509,7 +528,10 @@ func _populate_columns_popup_menu() -> void:
 				var class_str: String = ClassUtils.get_class_name_or_path_from_prop(prop)
 				var separator_label := class_str.get_file() if class_str.begins_with("res://") else class_str
 				popup.add_separator(separator_label)
-				popup.set_item_auto_translate_mode(popup.item_count - 1, AUTO_TRANSLATE_MODE_DISABLED)
+				popup.set_item_auto_translate_mode(
+					popup.item_count - 1,
+					AUTO_TRANSLATE_MODE_DISABLED,
+				)
 		elif prop_name not in BUILTIN_RESOURCE_PROPERTIES:
 			_add_column_submenu_item(popup, prop_name, prop_name.capitalize(), prop)
 
@@ -527,11 +549,19 @@ func _add_check_item(popup: PopupMenu, label: String, tooltip: String, checked: 
 	popup.set_item_checked(idx, checked)
 
 
-func _add_column_submenu_item(popup: PopupMenu, identifier: StringName, label: String, prop: Dictionary = { }) -> void:
+func _add_column_submenu_item(
+	popup: PopupMenu,
+	identifier: StringName,
+	label: String,
+	prop: Dictionary = { },
+) -> void:
 	popup.add_check_item(label)
 	var idx := popup.item_count - 1
 	popup.set_item_submenu_node(idx, _build_column_submenu(identifier))
-	popup.set_item_checked(idx, identifier not in registry_table_view.current_cache_data.disabled_columns)
+	popup.set_item_checked(
+		idx,
+		identifier not in registry_table_view.current_cache_data.disabled_columns,
+	)
 	popup.set_item_metadata(idx, identifier)
 	if not prop.is_empty():
 		popup.set_item_auto_translate_mode(idx, AUTO_TRANSLATE_MODE_DISABLED)
@@ -622,9 +652,17 @@ func _sort_opened_registries_by_filename() -> void:
 	var sorted: Dictionary[String, Registry] = { }
 	keys.sort_custom(
 		func(a: String, b: String) -> bool:
-			var filename_a := _editor_state_data.opened_registries[a].resource_path.get_file().to_lower()
-			var filename_b := _editor_state_data.opened_registries[b].resource_path.get_file().to_lower()
-			return filename_a < filename_b
+			var filename_a := _editor_state_data \
+					.opened_registries[a] \
+					.resource_path \
+					.get_file() \
+					.to_lower()
+			var filename_b := _editor_state_data \
+					.opened_registries[b] \
+					.resource_path \
+					.get_file() \
+					.to_lower()
+			return filename_a < filename_b,
 	)
 	for uid in keys:
 		sorted[uid] = _editor_state_data.opened_registries[uid]
@@ -736,7 +774,11 @@ func _on_columns_menu_id_pressed(id: int) -> void:
 	registry_table_view.update_view()
 
 
-func _on_column_submenu_id_pressed(action_id: int, identifier: StringName, submenu: PopupMenu) -> void:
+func _on_column_submenu_id_pressed(
+	action_id: int,
+	identifier: StringName,
+	submenu: PopupMenu,
+) -> void:
 	var item_idx := submenu.get_item_index(action_id)
 	submenu.toggle_item_checked(item_idx)
 	var checked := submenu.is_item_checked(item_idx)
@@ -801,9 +843,7 @@ func _on_columns_menu_button_about_to_popup() -> void:
 
 func _on_registry_settings_button_pressed() -> void:
 	new_registry_dialog.edited_registry = registry_table_view.current_registry
-	new_registry_dialog.popup_with_state(
-		new_registry_dialog.RegistryDialogState.REGISTRY_SETTINGS,
-	)
+	new_registry_dialog.popup_with_state(new_registry_dialog.RegistryDialogState.REGISTRY_SETTINGS)
 
 
 func _on_toggle_registries_pressed() -> void:

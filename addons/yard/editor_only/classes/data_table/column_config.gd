@@ -61,7 +61,12 @@ var frozen: bool = false
 var _cache: Dictionary = { }
 
 
-func _init(p_identifier: StringName, p_header: String, p_type: Variant.Type, p_alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT) -> void:
+func _init(
+	p_identifier: StringName,
+	p_header: String,
+	p_type: Variant.Type,
+	p_alignment: HorizontalAlignment = HORIZONTAL_ALIGNMENT_LEFT,
+) -> void:
 	identifier = p_identifier
 	header = p_header
 	type = p_type

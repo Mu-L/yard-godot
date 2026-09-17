@@ -14,24 +14,54 @@ static func matches(column: ColumnConfig) -> bool:
 	)
 
 
-static func draw_cell(canvas: CanvasItem, rect: Rect2, value: Variant, column: ColumnConfig, style: CellStyle) -> void:
+static func draw_cell(
+	canvas: CanvasItem,
+	rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	style: CellStyle,
+) -> void:
 	var text := value as String
 	if not text:
 		return
 	var font := resolve_font(column, style.font)
-	var ampersand_width := font.get_string_size(RIGHTWARDS_ARROW, HORIZONTAL_ALIGNMENT_LEFT, -1, style.font_size).x
+	var ampersand_width := font \
+			.get_string_size(RIGHTWARDS_ARROW, HORIZONTAL_ALIGNMENT_LEFT, -1, style.font_size) \
+			.x
 	var ampersand_color: Color = canvas.get_theme_color(&"readonly_color", &"EditorProperty")
 	var x_margin: int = H_ALIGNMENT_MARGINS.get(HORIZONTAL_ALIGNMENT_LEFT)
 	var text_rect := rect.grow_side(SIDE_LEFT, -(ampersand_width + x_margin))
-	draw_text(canvas, rect, RIGHTWARDS_ARROW, font, style.font_size, column.h_alignment, ampersand_color)
-	draw_text(canvas, text_rect, text, font, style.font_size, column.h_alignment, _hashed_color(text))
+	draw_text(
+		canvas,
+		rect,
+		RIGHTWARDS_ARROW,
+		font,
+		style.font_size,
+		column.h_alignment,
+		ampersand_color,
+	)
+	draw_text(
+		canvas,
+		text_rect,
+		text,
+		font,
+		style.font_size,
+		column.h_alignment,
+		_hashed_color(text),
+	)
 
 
 static func has_editor() -> bool:
 	return true
 
 
-static func create_editor(owner: Control, _rect: Rect2, value: Variant, column: ColumnConfig, on_finished: Callable) -> Node:
+static func create_editor(
+	owner: Control,
+	_rect: Rect2,
+	value: Variant,
+	column: ColumnConfig,
+	on_finished: Callable,
+) -> Node:
 	var popup_menu := PopupMenu.new()
 	var checked_idx := -1
 	owner.add_child(popup_menu)
@@ -49,12 +79,12 @@ static func create_editor(owner: Control, _rect: Rect2, value: Variant, column: 
 			if checked_idx != -1:
 				popup_menu.set_item_checked(checked_idx, false)
 			popup_menu.set_item_checked(idx, true)
-			on_finished.call(true) # Not good. Why does it know callback signature?!
+			on_finished.call(true), # Not good. Why does it know callback signature?!
 	)
 	popup_menu.popup_hide.connect(
 		func() -> void:
 			await popup_menu.get_tree().create_timer(0.05).timeout
-			on_finished.call(false) # Same issue
+			on_finished.call(false), # Same issue
 	)
 
 	popup_menu.position = DisplayServer.mouse_get_position()

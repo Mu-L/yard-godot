@@ -93,17 +93,31 @@ signal task_checkbox_clicked(id: int, line: int, checked: bool, task_string: Str
 
 @export_group("Horizontal rules", "hr_")
 ## Height of horizontal rules. Only for Godot 4.5+.
-@export_range(0, 99, 1, "suffix:px") var hr_height: int = 2:
+@export_range(
+	0,
+	99,
+	1,
+	"suffix:px",
+) var hr_height: int = 2:
 	set(new_value):
 		hr_height = new_value
 		queue_update()
 ## Width of horizontal rules, as a percentage of the label's width. Only for Godot 4.5+.
-@export_range(0, 100, 1, "suffix:%") var hr_width: float = 90:
+@export_range(
+	0,
+	100,
+	1,
+	"suffix:%",
+) var hr_width: float = 90:
 	set(new_value):
 		hr_width = new_value
 		queue_update()
 ## Alignment of horizontal rules. Only for Godot 4.5+.
-@export_enum("left", "center", "right") var hr_alignment: String = "center":
+@export_enum(
+	"left",
+	"center",
+	"right",
+) var hr_alignment: String = "center":
 	set(new_value):
 		hr_alignment = new_value
 		queue_update()
@@ -154,6 +168,7 @@ var _checkbox_record := { }
 var _debug_mode := false
 var _frontmatter := ""
 #endregion
+
 
 #region Built-in methods:
 @warning_ignore("shadowed_variable")
@@ -235,6 +250,7 @@ func _notification(what: int) -> void:
 
 #endregion
 
+
 #region Public methods:
 ## Reads the specified file and displays it as markdown.[br][br]
 ## If [param handle_frontmatter] is [code]true[/code] (default), any valid YAML or TOML front-matter won't be displayed
@@ -272,6 +288,7 @@ func queue_update() -> void:
 
 #endregion
 
+
 #region Private methods:
 func _set_text(new_text: String) -> void:
 	markdown_text = new_text
@@ -286,7 +303,9 @@ func _set_markdown_text(new_text: String) -> void:
 func _update() -> void:
 	_dirty = false
 	super.clear()
-	var bbcode_text: String = _convert_markdown(TranslationServer.translate(markdown_text) as String if _can_auto_translate() else markdown_text)
+	var bbcode_text: String = _convert_markdown(
+		TranslationServer.translate(markdown_text) as String if _can_auto_translate() else markdown_text
+	)
 	super.parse_bbcode(bbcode_text)
 
 
@@ -329,7 +348,9 @@ func _set_h6_format(new_format: H6Format) -> void:
 
 func _convert_markdown(source_text: String = "") -> String:
 	if not bbcode_enabled:
-		push_warning("WARNING: MarkdownLabel node will not format Markdown syntax if it doesn't have 'bbcode_enabled=true'")
+		push_warning(
+			"WARNING: MarkdownLabel node will not format Markdown syntax if it doesn't have 'bbcode_enabled=true'"
+		)
 		return source_text
 	if skip_lines > 0:
 		source_text = "\n".join(source_text.split("\n").slice(skip_lines))
@@ -553,14 +574,14 @@ func _process_list_syntax(line: String, indent_spaces: Array, indent_types: Arra
 
 
 func _process_task_list_item(item: String) -> String:
-	if item.length() <= 3 or item[0] != "[" or item[2] != "]" or item[3] != " " or not item[1] in " x":
+	if (
+		item.length() <= 3 or item[0] != "[" or item[2] != "]"
+		or item[3] != " " or not item[1] in " x"
+	):
 		return item
 	var processed_item := item.erase(0, 3)
 	var checkbox: String
-	var meta := {
-		_CHECKBOX_KEY: true,
-		"id": _checkbox_id,
-	}
+	var meta := { _CHECKBOX_KEY: true, "id": _checkbox_id }
 	_checkbox_record[_checkbox_id] = _current_line - 1 # _current_line is actually the next line here
 	_checkbox_id += 1
 	if item[1] == " ":
@@ -572,7 +593,10 @@ func _process_task_list_item(item: String) -> String:
 		meta.checked = true
 		_debug("... item is a checked task item")
 	if enable_checkbox_clicks:
-		processed_item = processed_item.insert(0, "[url=%s]%s[/url]" % [JSON.stringify(meta), checkbox])
+		processed_item = processed_item.insert(
+			0,
+			"[url=%s]%s[/url]" % [JSON.stringify(meta), checkbox],
+		)
 	else:
 		processed_item = processed_item.insert(0, checkbox)
 	return processed_item
@@ -627,7 +651,8 @@ func _process_image_syntax(line: String) -> String:
 			url = _escape_chars(url)
 			processed_line = processed_line.erase(_start, _end - _start).insert(
 				_start,
-				"[img%s%s]%s[/img]" % [
+				"[img%s%s]%s[/img]"
+				% [
 					" alt=\"%s\"" % alt_text if alt_text else "",
 					" tooltip=\"%s\"" % title if title_result and title else "",
 					url,
@@ -666,18 +691,17 @@ func _process_link_syntax(line: String) -> String:
 				title = title_result.get_string(1)
 				url = url.rstrip(" ").trim_suffix(title_result.get_string()).rstrip(" ")
 			url = _escape_chars(url)
-			processed_line = processed_line.erase(
-				_start + _text.get_start(),
-				_end - _start - _text.get_start(),
-			).insert(
+			processed_line = processed_line \
+					.erase(_start + _text.get_start(), _end - _start - _text.get_start()) \
+					.insert(
 				_start + _text.get_start(),
 				"[url=%s]%s[/url]" % [url, _text.get_string(1)],
 			)
 			if title_result and title:
-				processed_line = processed_line.insert(
-					_start + _text.get_start() + 12 + url.length() + _text.get_string(1).length(),
-					"[/hint]",
-				).insert(_start + _text.get_start(), "[hint=%s]" % title)
+				processed_line = processed_line \
+						.insert(_start + _text.get_start() + 12 + url.length()
+				+ _text.get_string(1).length(), "[/hint]") \
+						.insert(_start + _text.get_start(), "[hint=%s]" % title)
 			_debug("... hyperlink: " + result.get_string())
 			break
 		if not found_proper_match:
@@ -696,10 +720,16 @@ func _process_link_syntax(line: String) -> String:
 			url = mail.get_string(1)
 		url = _escape_chars(url)
 		if mail:
-			processed_line = processed_line.erase(_start, _end - _start).insert(_start, "[url=mailto:%s]%s[/url]" % [url, url])
+			processed_line = processed_line.erase(_start, _end - _start).insert(
+				_start,
+				"[url=mailto:%s]%s[/url]" % [url, url],
+			)
 			_debug("... mail link: " + result.get_string())
 		else:
-			processed_line = processed_line.erase(_start, _end - _start).insert(_start, "[url]%s[/url]" % url)
+			processed_line = processed_line.erase(_start, _end - _start).insert(
+				_start,
+				"[url]%s[/url]" % url,
+			)
 			_debug("... explicit link: " + result.get_string())
 	return processed_line
 
@@ -783,7 +813,10 @@ func _process_header_syntax(line: String) -> String:
 		var opening_tags := _get_header_tags(header_format)
 		processed_line = processed_line.erase(_start, n + n_spaces).insert(_start, opening_tags)
 		var _end := result.get_end()
-		processed_line = processed_line.insert(_end - (n + n_spaces) + opening_tags.length(), _get_header_tags(header_format, true))
+		processed_line = processed_line.insert(
+			_end - (n + n_spaces) + opening_tags.length(),
+			_get_header_tags(header_format, true),
+		)
 		_debug("... header level %d" % n)
 		_header_anchor_paragraph[_get_header_reference(result.get_string())] = _current_paragraph
 		if header_format.get("draw_horizontal_rule"):
@@ -817,7 +850,10 @@ func _process_hr_syntax(line: String) -> String:
 
 
 func _escape_bbcode(source: String) -> String:
-	return source.replacen("[", _ESCAPE_PLACEHOLDER).replacen("]", "[rb]").replacen(_ESCAPE_PLACEHOLDER, "[lb]")
+	return source.replacen("[", _ESCAPE_PLACEHOLDER).replacen("]", "[rb]").replacen(
+		_ESCAPE_PLACEHOLDER,
+		"[lb]",
+	)
 
 
 func _escape_chars(_text: String) -> String:
@@ -825,7 +861,10 @@ func _escape_chars(_text: String) -> String:
 	for _char: String in _ESCAPEABLE_CHARACTERS:
 		if not _char in _escaped_characters_map:
 			_escaped_characters_map[_char] = _escaped_characters_map.size()
-		escaped_text = escaped_text.replacen(_char, _ESCAPE_PLACEHOLDER % _escaped_characters_map[_char])
+		escaped_text = escaped_text.replacen(
+			_char,
+			_ESCAPE_PLACEHOLDER % _escaped_characters_map[_char],
+		)
 	return escaped_text
 
 
@@ -834,7 +873,10 @@ func _reset_escaped_chars(_text: String, code := false) -> String:
 	for _char in _ESCAPEABLE_CHARACTERS:
 		if not _char in _escaped_characters_map:
 			continue
-		unescaped_text = unescaped_text.replacen(_ESCAPE_PLACEHOLDER % _escaped_characters_map[_char], "\\" + _char if code else _char)
+		unescaped_text = unescaped_text.replacen(
+			_ESCAPE_PLACEHOLDER % _escaped_characters_map[_char],
+			"\\" + _char if code else _char,
+		)
 	return unescaped_text
 
 
@@ -897,7 +939,10 @@ func _process_escaped_characters(line: String) -> String:
 		var _escaped_char := result.get_string()[1]
 		if not _escaped_char in _escaped_characters_map:
 			_escaped_characters_map[_escaped_char] = _escaped_characters_map.size()
-		processed_line = processed_line.erase(_start, 2).insert(_start, _ESCAPE_PLACEHOLDER % _escaped_characters_map[_escaped_char])
+		processed_line = processed_line.erase(_start, 2).insert(
+			_start,
+			_ESCAPE_PLACEHOLDER % _escaped_characters_map[_escaped_char],
+		)
 	return processed_line
 
 
@@ -969,7 +1014,9 @@ func _get_header_tags(header_format: Resource, closing := false) -> String:
 		if header_format.override_font_color and header_format.font_color:
 			tags += "[color=#%s]" % header_format.font_color.to_html()
 		if header_format.font_size:
-			tags += "[font_size=%d]" % int(header_format.font_size * self.get_theme_font_size("normal_font_size"))
+			tags += "[font_size=%d]" % int(
+				header_format.font_size * self.get_theme_font_size("normal_font_size")
+			)
 		if header_format.is_bold:
 			tags += "[b]"
 		if header_format.is_italic:
