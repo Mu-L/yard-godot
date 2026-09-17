@@ -15,9 +15,12 @@ const TRANSLATIONS := Namespace.TRANSLATIONS
 const REGISTRY_EDITOR_SCENE := Namespace.REGISTRY_EDITOR_SCENE
 const FILESYSTEM_CREATE_CONTEXT_MENU_PLUGIN := Namespace.FILESYSTEM_CREATE_CONTEXT_MENU_PLUGIN
 const EDITOR_INSPECTOR_PLUGIN := Namespace.EDITOR_INSPECTOR_PLUGIN
+const EDITOR_EXPORT_PLUGIN := Namespace.EDITOR_EXPORT_PLUGIN
 
 var _registry_editor: RegistryEditor
 var _filesystem_create_context_menu_plugin: EditorContextMenuPlugin
+var _editor_inspector_plugin: EditorInspectorPlugin
+var _editor_export_plugin: EditorExportPlugin
 var _cached_plugin_name: String
 var _dock: Control #EditorDock
 
@@ -42,7 +45,11 @@ func _enter_tree() -> void:
 	_filesystem_create_context_menu_plugin = FILESYSTEM_CREATE_CONTEXT_MENU_PLUGIN.new(_filesystem_create_context_menu_plugin_callback)
 	add_context_menu_plugin(EditorContextMenuPlugin.CONTEXT_SLOT_FILESYSTEM_CREATE, _filesystem_create_context_menu_plugin)
 
-	add_inspector_plugin(EDITOR_INSPECTOR_PLUGIN.new())
+	_editor_inspector_plugin = EDITOR_INSPECTOR_PLUGIN.new()
+	add_inspector_plugin(_editor_inspector_plugin)
+
+	_editor_export_plugin = EDITOR_EXPORT_PLUGIN.new()
+	add_export_plugin(_editor_export_plugin)
 
 	_registry_editor = REGISTRY_EDITOR_SCENE.instantiate()
 
@@ -70,6 +77,12 @@ func _exit_tree() -> void:
 	if is_instance_valid(_filesystem_create_context_menu_plugin):
 		remove_context_menu_plugin(_filesystem_create_context_menu_plugin)
 
+	if is_instance_valid(_editor_inspector_plugin):
+		remove_inspector_plugin(_editor_inspector_plugin)
+
+	if is_instance_valid(_editor_export_plugin):
+		remove_export_plugin(_editor_export_plugin)
+
 
 func _has_main_screen() -> bool:
 	if Compat.is_engine_version_equal_or_newer(4, 8):
@@ -81,6 +94,8 @@ func _has_main_screen() -> bool:
 func _make_visible(visible: bool) -> void:
 	if is_instance_valid(_registry_editor):
 		_registry_editor.visible = visible
+		_registry_editor._update_registries_itemlist()
+		_registry_editor.registry_table_view.update_view()
 
 
 func _handles(object: Object) -> bool:
@@ -92,6 +107,12 @@ func _edit(object: Object) -> void:
 		return
 	var edited_registry := object as Registry
 	_registry_editor.open_registry(edited_registry)
+
+
+func _build() -> bool:
+	_registry_editor.rescan_known_registries()
+	_registry_editor.reindex_known_registries()
+	return true
 
 
 func _get_plugin_name() -> String:
