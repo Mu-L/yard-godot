@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://woa50nl7s75b"]
+[gd_scene format=3 uid="uid://woa50nl7s75b"]
 
 [ext_resource type="Script" uid="uid://cbi6iha8se2sg" path="res://addons/yard/editor_only/ui_scenes/components/readme_window.gd" id="1_jbsvw"]
 [ext_resource type="Script" uid="uid://bfyublltgtwo3" path="res://addons/yard/editor_only/classes/markdownlabel/markdownlabel.gd" id="1_xfkfm"]
@@ -43,14 +43,14 @@ script = ExtResource("6_3ru8o")
 resource_local_to_scene = true
 script = ExtResource("7_a16y5")
 
-[node name="ReadMeWindow" type="AcceptDialog"]
+[node name="ReadMeWindow" type="AcceptDialog" unique_id=86896442]
 oversampling_override = 1.0
 title = "Yet Another Resource Database — README.md"
 size = Vector2i(500, 500)
 ok_button_text = "Close"
 script = ExtResource("1_jbsvw")
 
-[node name="MarkdownLabel" type="RichTextLabel" parent="."]
+[node name="MarkdownLabel" type="RichTextLabel" parent="." unique_id=891083432]
 unique_name_in_owner = true
 anchors_preset = 15
 anchor_right = 1.0

@@ -121,6 +121,9 @@ var _registry_scan_ruleset_override_buttons: Dictionary[String, TextureButton] =
 
 
 func _ready() -> void:
+	if not Engine.is_editor_hint() or EditorInterface.get_edited_scene_root() == self:
+		return
+
 	recursive_scan_check_box.add_theme_stylebox_override(&"focus", get_theme_stylebox(&"focus", &"LineEdit"))
 	for override: StringName in [&"normal", &"hover", &"pressed", &"hover_pressed"]:
 		recursive_scan_check_box.add_theme_stylebox_override(override, get_theme_stylebox(&"normal", &"LineEdit"))
