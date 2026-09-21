@@ -487,10 +487,10 @@ func _populate_open_recent_submenu() -> void:
 				return
 			var uid := _editor_state_data.recent_registry_uids[id]
 			if RegistryIO.is_uid_valid(uid):
-				@warning_ignore("standalone_ternary")
-				select_registry(uid) if _editor_state_data.opened_registries.has(uid) else open_registry(
-					load(uid)
-				),
+				if _editor_state_data.opened_registries.has(uid):
+					select_registry(uid)
+				else:
+					open_registry(load(uid)),
 	)
 
 	file_menu.set_item_submenu_node(file_menu.get_item_index(FileMenuAction.OPEN_RECENT), recent)

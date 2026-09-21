@@ -1341,9 +1341,11 @@ func _handle_key_input(event: InputEventKey) -> void:
 
 func _navigate_to(new_idx: int, new_col_idx: int, key_event: InputEventKey) -> void:
 	var new_row := _order[new_idx] if new_idx >= 0 and new_idx < _order.size() else &""
-	var new_col := _columns[new_col_idx].identifier if (
-		new_col_idx >= 0 and new_col_idx < _columns.size()
-	) else &""
+	var new_col := (
+		_columns[new_col_idx].identifier
+		if (new_col_idx >= 0 and new_col_idx < _columns.size())
+		else &""
+	)
 	var old_row := focused_row
 	var old_col := focused_col
 
@@ -1352,8 +1354,10 @@ func _navigate_to(new_idx: int, new_col_idx: int, key_event: InputEventKey) -> v
 
 	if key_event.is_shift_pressed():
 		if _anchor_row == &"":
-			_anchor_row = old_row if old_row != &"" else (
-				_order[0] if not _order.is_empty() else &""
+			_anchor_row = (
+				old_row
+				if old_row != &""
+				else (_order[0] if not _order.is_empty() else &"")
 			)
 		if focused_row != &"":
 			var anchor_idx := _order.find(_anchor_row)
@@ -1418,9 +1422,11 @@ func _dispatch_cell_input(event: InputEvent, row: StringName, col: StringName) -
 		update_cell(row, col, result[&"value"])
 
 	if result.get(&"commit", false):
-		var old_value: Variant = _live_edit_start_value if (
-			row == _live_edit_row and col == _live_edit_col
-		) else cell_value
+		var old_value: Variant = (
+			_live_edit_start_value
+			if (row == _live_edit_row and col == _live_edit_col)
+			else cell_value
+		)
 		cell_edited.emit(row, col, old_value, get_cell_value(row, col))
 		_live_edit_row = &""
 		_live_edit_col = &""
