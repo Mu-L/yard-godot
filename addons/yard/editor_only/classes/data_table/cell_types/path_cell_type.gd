@@ -7,7 +7,10 @@ extends "res://addons/yard/editor_only/classes/data_table/cell_types/cell_type.g
 ## hint gets thumbnail + invalid-UID rendering; FILE_PATH/DIR fall back to
 ## plain (mono-font) text.
 
+const ClassUtils := Namespace.ClassUtils
+
 const INVALID_UID := "uid://<invalid>"
+const PROPERTY_HINT_FILE_PATH := 44 # This global scope const doesn't exist in Godot 4.4
 
 
 static func matches(column: ColumnConfig) -> bool:
@@ -46,8 +49,9 @@ static func draw_cell(
 	var texture: Texture2D
 	if is_invalid_uid:
 		texture = style.file_dead_icon
-	elif ResourceLoader.exists(value):
-		texture = style.get_thumbnail.call(value)
+	elif ResourceLoader.exists(value) and Compat.is_engine_version_equal_or_newer(4, 5):
+		var type_name := ClassUtils.get_type_name(load(value))
+		texture = style.get_thumbnail.call(value, type_name)
 
 	if texture != null:
 		var thumb_rect := fit_texture_rect(texture, inner, true)
@@ -106,7 +110,7 @@ static func create_editor(
 
 	var cell_value := str(value) if value != null else ""
 	if FileAccess.file_exists(cell_value):
-		var current_path := ResourceUID.ensure_path(cell_value)
+		var current_path := Compat.ensure_path(cell_value)
 		editor.current_dir = current_path.get_base_dir()
 		editor.current_path = current_path
 
@@ -124,5 +128,5 @@ static func create_editor(
 static func read_editor_value(editor: Node, column: ColumnConfig) -> Variant:
 	var raw: String = (editor as EditorFileDialog).current_path
 	if column.property_hint == PROPERTY_HINT_FILE:
-		return ResourceUID.path_to_uid(raw)
+		return Compat.path_to_uid(raw)
 	return raw

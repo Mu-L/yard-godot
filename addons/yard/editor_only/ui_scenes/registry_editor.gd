@@ -30,6 +30,7 @@ const EditMenuAction := RegistryTableView.EditMenuAction # Enum
 
 const Namespace := preload("res://addons/yard/editor_only/namespace.gd")
 const PluginCFG := Namespace.PluginCFG
+const Compat := Namespace.Compat
 const RegistryIO := Namespace.RegistryIO
 const ClassUtils := Namespace.ClassUtils
 const ShortcutUtils := Namespace.ShortcutUtils
@@ -132,7 +133,7 @@ func _shortcut_input(event: InputEvent) -> void:
 ## Open a registry from the filesystem and add it to the list of opened ones
 func open_registry(registry: Registry) -> void:
 	var filepath := registry.resource_path
-	var uid := ResourceUID.path_to_uid(filepath)
+	var uid := Compat.path_to_uid(filepath)
 
 	if uid not in _editor_state_data.opened_registries:
 		_editor_state_data.opened_registries[uid] = registry
@@ -472,7 +473,7 @@ func _populate_open_recent_submenu() -> void:
 	var recent := PopupMenu.new()
 	for entry in _editor_state_data.recent_registry_uids:
 		if ResourceUID.has_id(ResourceUID.text_to_id(entry)):
-			recent.add_item(ResourceUID.uid_to_path(entry))
+			recent.add_item(Compat.uid_to_path(entry))
 	recent.add_separator()
 	recent.add_item(tr("Clear Recent Registries"), FileMenuAction.CLEAR_RECENT)
 	recent.set_item_disabled(
@@ -514,7 +515,6 @@ func _populate_columns_popup_menu() -> void:
 	)
 
 	popup.add_separator(tr("ID Columns"))
-	popup.set_item_auto_translate_mode(popup.item_count - 1, AUTO_TRANSLATE_MODE_DISABLED)
 	_add_column_submenu_item(popup, STRINGID_COLUMN, tr("String ID"), { })
 	_add_column_submenu_item(popup, UID_COLUMN, tr("UID"), { })
 
@@ -528,15 +528,15 @@ func _populate_columns_popup_menu() -> void:
 				var class_str: String = ClassUtils.get_class_name_or_path_from_prop(prop)
 				var separator_label := class_str.get_file() if class_str.begins_with("res://") else class_str
 				popup.add_separator(separator_label)
-				popup.set_item_auto_translate_mode(
-					popup.item_count - 1,
-					AUTO_TRANSLATE_MODE_DISABLED,
-				)
+				if Compat.is_engine_version_equal_or_newer(4, 5):
+					popup.set_item_auto_translate_mode(
+						popup.item_count - 1,
+						AUTO_TRANSLATE_MODE_DISABLED,
+					)
 		elif prop_name not in BUILTIN_RESOURCE_PROPERTIES:
 			_add_column_submenu_item(popup, prop_name, prop_name.capitalize(), prop)
 
 	popup.add_separator("Resource/RefCounted")
-	popup.set_item_auto_translate_mode(popup.item_count - 1, AUTO_TRANSLATE_MODE_DISABLED)
 	for prop: Dictionary in registry_table_view.properties_column_info:
 		if prop[&"name"] in BUILTIN_RESOURCE_PROPERTIES:
 			_add_column_submenu_item(popup, prop[&"name"], String(prop[&"name"]).capitalize(), prop)
@@ -564,7 +564,8 @@ func _add_column_submenu_item(
 	)
 	popup.set_item_metadata(idx, identifier)
 	if not prop.is_empty():
-		popup.set_item_auto_translate_mode(idx, AUTO_TRANSLATE_MODE_DISABLED)
+		if Compat.is_engine_version_equal_or_newer(4, 5):
+			popup.set_item_auto_translate_mode(idx, AUTO_TRANSLATE_MODE_DISABLED)
 		popup.set_item_icon(idx, AnyIcon.get_property_icon_from_dict(prop))
 
 
@@ -609,7 +610,7 @@ func _do_file_menu_action(action_id: int) -> void:
 		FileMenuAction.CLOSE_ALL:
 			close_all()
 		FileMenuAction.COPY_PATH:
-			var path := ResourceUID.uid_to_path(_current_registry_uid)
+			var path := Compat.uid_to_path(_current_registry_uid)
 			if path:
 				DisplayServer.clipboard_set(path)
 		FileMenuAction.COPY_UID:
@@ -692,7 +693,7 @@ func _close_tabs_below(uid: String) -> void:
 
 
 func _show_in_filesystem(uid: String) -> void:
-	var path := ResourceUID.uid_to_path(uid)
+	var path := Compat.uid_to_path(uid)
 	var fs := EditorInterface.get_file_system_dock()
 	fs.navigate_to_path(path)
 
