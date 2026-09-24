@@ -7,11 +7,6 @@
 @tool
 extends AcceptDialog
 
-## Displays release info and drives an update. Knows nothing about its
-## container: it only asks for things via signals, and gets fed data through
-## load_info()/set_download_result(). Closing is handled by AcceptDialog's
-## own OK button (relabeled "Close"), nothing to wire up for that.
-
 signal install_requested
 signal refresh_requested
 
@@ -19,6 +14,7 @@ const Namespace := preload("res://addons/yard/editor_only/namespace.gd")
 const Compat := Namespace.Compat
 const EditorThemeUtils := Namespace.EditorThemeUtils
 const UpdateManager := Namespace.UpdateManager
+const YardSettings := Namespace.YardSettings
 
 const INSTALL_WARNING := (
 	"Be careful. This will delete the addons/yard folder and install the new version."
@@ -26,6 +22,9 @@ const INSTALL_WARNING := (
 )
 
 var current_info := { }
+
+var _channel_names: PackedStringArray = []
+var _last_known_channel := ""
 
 @onready var content: RichTextLabel = %Content
 @onready var install_button: Button = %Install
@@ -38,6 +37,7 @@ var current_info := { }
 @onready var loading_container: CenterContainer = %Loading
 @onready var info_label: Label = %InfoLabel
 @onready var restart_button: Button = %Restart
+@onready var channel_option_button: OptionButton = %ChannelOptionButton
 
 
 func _ready() -> void:
@@ -68,6 +68,12 @@ func _ready() -> void:
 
 	content.code_color = get_theme_color(&"warning_color", &"Editor")
 	content.code_background_color = get_theme_color(&"background", &"Editor")
+
+	_populate_channel_option_button()
+	_last_known_channel = _get_current_channel()
+	_sync_channel_option_button()
+	channel_option_button.item_selected.connect(_on_channel_option_button_item_selected)
+	ProjectSettings.settings_changed.connect(_on_project_settings_changed)
 
 
 func load_info(info: Dictionary, result: UpdateManager.UpdateCheckResult) -> void:
@@ -155,6 +161,24 @@ func set_download_result(result: UpdateManager.DownloadResult) -> void:
 			info_label.modulate = EditorThemeUtils.color_error
 
 
+func _populate_channel_option_button() -> void:
+	var setting := YardSettings.get_setting_definition(YardSettings.UPDATE_CHANNEL)
+	_channel_names = (setting.hint_string as String).split(",")
+	channel_option_button.clear()
+	for channel_name: String in _channel_names:
+		channel_option_button.add_item(channel_name)
+
+
+func _get_current_channel() -> String:
+	return YardSettings.get_setting(YardSettings.UPDATE_CHANNEL)
+
+
+func _sync_channel_option_button() -> void:
+	var index := _channel_names.find(_last_known_channel)
+	if index != -1:
+		channel_option_button.select(index)
+
+
 func _on_install_pressed() -> void:
 	install_requested.emit()
 
@@ -170,6 +194,23 @@ func _on_install_pressed() -> void:
 
 
 func _on_refresh_pressed() -> void:
+	refresh_requested.emit()
+
+
+func _on_channel_option_button_item_selected(index: int) -> void:
+	ProjectSettings.set_setting(
+		YardSettings.UPDATE_CHANNEL,
+		channel_option_button.get_item_text(index),
+	)
+	ProjectSettings.save()
+
+
+func _on_project_settings_changed() -> void:
+	var current_channel := _get_current_channel()
+	if current_channel == _last_known_channel:
+		return
+	_last_known_channel = current_channel
+	_sync_channel_option_button()
 	refresh_requested.emit()
 
 

@@ -203,9 +203,7 @@ func _on_update_check_request_completed(
 
 	var releases: Array = response
 	var current_release_info := parse_semver(get_current_version())
-	var allow_prereleases: bool = (
-		ProjectSettings.get_setting(YardSettings.UPDATE_CHANNEL, "Stable") != "Stable"
-	)
+	var allow_prereleases: bool = YardSettings.get_setting(YardSettings.UPDATE_CHANNEL) != "Stable"
 
 	# GitHub releases are in order of creation, not order of version
 	var newer_releases := releases.filter(

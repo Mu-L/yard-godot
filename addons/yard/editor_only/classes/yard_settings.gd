@@ -39,3 +39,16 @@ static func register_settings() -> void:
 			}
 		)
 		ProjectSettings.set_as_basic(path, true)
+
+
+static func get_setting_definition(path: String) -> Dictionary:
+	for setting: Dictionary in SETTINGS:
+		if setting.name == path:
+			return setting
+	return { }
+
+
+## Reads a registered setting's current value, falling back to its own
+## registered default (rather than an arbitrary caller-supplied one).
+static func get_setting(path: String) -> Variant:
+	return ProjectSettings.get_setting(path, get_setting_definition(path).get("default"))

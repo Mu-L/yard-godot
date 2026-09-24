@@ -92,6 +92,13 @@ unique_name_in_owner = true
 layout_mode = 2
 text = "Published on 12/31/23 by octocat"
 
+[node name="ChannelOptionButton" type="OptionButton" parent="VBoxContainer/Header/TitleRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+focus_mode = 0
+tooltip_text = "Update channel"
+
 [node name="Refresh" type="Button" parent="VBoxContainer/Header/TitleRow" unique_id=278289381]
 layout_mode = 2
 size_flags_vertical = 0
