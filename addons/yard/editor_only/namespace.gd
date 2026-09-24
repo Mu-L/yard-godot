@@ -15,6 +15,7 @@ const EditorThemeUtils := preload("res://addons/yard/editor_only/classes/editor_
 const YardFuzzySearch := preload("res://addons/yard/editor_only/classes/yard_fuzzy_search.gd")
 const AnyIcon := preload("res://addons/yard/editor_only/classes/any_icon.gd")
 const YardLogger := preload("res://addons/yard/editor_only/classes/yard_logger.gd")
+const YardSettings := preload("res://addons/yard/editor_only/classes/yard_settings.gd")
 
 # UI Scenes
 const RegistryEditor := preload("res://addons/yard/editor_only/ui_scenes/registry_editor.gd")
@@ -27,6 +28,12 @@ const RegistriesItemList := preload(
 )
 const NewRegistryDialog := preload(
 	"res://addons/yard/editor_only/ui_scenes/components/new_registry_dialog.gd"
+)
+const UpdateManager := preload(
+	"res://addons/yard/editor_only/ui_scenes/components/update_manager/update_manager.gd"
+)
+const UpdateInstallWindow := preload(
+	"res://addons/yard/editor_only/ui_scenes/components/update_install_window/update_install_window.gd"
 )
 const EditorPropertyOptionWrapper := preload(
 	"res://addons/yard/editor_only/ui_scenes/components/editor_property_option_wrapper.gd"
