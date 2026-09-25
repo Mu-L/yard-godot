@@ -7,11 +7,34 @@
 [ext_resource type="Texture2D" uid="uid://dsb08ilibfucu" path="res://example/godomon/assets/monsters/battler/back_normal/Smoald.png" id="4_backn"]
 [ext_resource type="Texture2D" uid="uid://bt1ofsxprwxn8" path="res://example/godomon/assets/monsters/battler/back_shiny/Smoald.png" id="5_backs"]
 
+[sub_resource type="Resource" id="Resource_yu0dl"]
+script = ExtResource("3_q23kg")
+target_species = &"bombustoad"
+min_level = 30
+metadata/_custom_type_script = "uid://dh362naomk3hc"
+
 [resource]
 script = ExtResource("1_script")
 name = "Smoald"
 type_1 = &"fire"
+evolutions = Array[ExtResource("3_q23kg")]([SubResource("Resource_yu0dl")])
+base_hp = 60
+base_attack = 45
+base_defense = 55
+base_sp_attack = 65
+base_sp_defense = 50
+base_speed = 40
+experience_yield = 60
+ev_sp_attack = 1
+catch_rate = 190
+step_cycles = 20
+egg_groups = 16
+category = "Slow Burn"
+dex_entry = "A haze develops around any stone dais a Smoald has claimed as its own. The smoke it breathes changes scent and color based on what it has last eaten."
+height = 0.5
+weight = 12.0
 color = 9
+keywords = "animal,vertebrate,amphibian,frog,smoke,symbol,orange,red,white"
 front_normal = ExtResource("2_frontn")
 front_shiny = ExtResource("3_fronts")
 back_normal = ExtResource("4_backn")

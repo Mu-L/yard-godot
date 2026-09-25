@@ -7,12 +7,37 @@
 [ext_resource type="Texture2D" uid="uid://cbye5ger1pjs5" path="res://example/godomon/assets/monsters/battler/back_normal/Bonfur.png" id="4_backn"]
 [ext_resource type="Texture2D" uid="uid://dp26rwlgrcesc" path="res://example/godomon/assets/monsters/battler/back_shiny/Bonfur.png" id="5_backs"]
 
+[sub_resource type="Resource" id="Resource_22f2m"]
+script = ExtResource("3_4myvu")
+target_species = &"tindursa"
+min_level = 16
+metadata/_custom_type_script = "uid://dh362naomk3hc"
+
 [resource]
 script = ExtResource("1_script")
 name = "Bonfur"
+type_1 = &"fire"
+evolutions = Array[ExtResource("3_4myvu")]([SubResource("Resource_22f2m")])
+base_hp = 50
+base_attack = 65
+base_defense = 48
+base_sp_attack = 45
+base_sp_defense = 45
+base_speed = 56
+growth_rate = 3
+experience_yield = 60
+ev_hp = 1
 gender_ratio = 2
+catch_rate = 45
+step_cycles = 20
+egg_groups = 16
+category = "Warmth"
+dex_entry = "The fur on its chest stays warm even in the coldest winters. Bonfur loves to curl up against its trainer's legs, and gets grumpy when its paws get wet."
+height = 0.5
+weight = 11.0
 color = 7
 shape = 11
+keywords = "animal,vertebrate,mammal,carnivoran,caniform,arctoid,bear,bipedal,red,starter"
 front_normal = ExtResource("2_frontn")
 front_shiny = ExtResource("3_fronts")
 back_normal = ExtResource("4_backn")

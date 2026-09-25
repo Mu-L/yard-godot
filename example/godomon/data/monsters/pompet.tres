@@ -7,14 +7,39 @@
 [ext_resource type="Texture2D" uid="uid://tyb6bm502p28" path="res://example/godomon/assets/monsters/battler/front_normal/Pompet.png" id="4_bc7xl"]
 [ext_resource type="Texture2D" uid="uid://cc30crck5hi3o" path="res://example/godomon/assets/monsters/battler/front_shiny/Pompet.png" id="5_cfasp"]
 
+[sub_resource type="Resource" id="Resource_e3k7t"]
+script = ExtResource("1_5qim8")
+target_species = &"pomprim"
+context = 1
+min_level = 32
+metadata/_custom_type_script = "uid://dh362naomk3hc"
+
 [resource]
 script = ExtResource("2_ojn6m")
 name = "Pompet"
 type_1 = &"plant"
 type_2 = &"sacred"
+evolutions = Array[ExtResource("1_5qim8")]([SubResource("Resource_e3k7t")])
+base_hp = 55
+base_attack = 50
+base_defense = 50
+base_sp_attack = 55
+base_sp_defense = 60
+base_speed = 40
+growth_rate = 4
+experience_yield = 62
+ev_sp_defense = 1
 gender_ratio = 5
+catch_rate = 190
+step_cycles = 20
+egg_groups = 96
+category = "Rennet"
+dex_entry = "Pompet grows on apple trees like ordinary fruit. Its skin is so soft and squishy that it never bruises when it falls, and children often mistake it for a plush toy."
+height = 0.3
+weight = 1.8
 color = 4
 shape = 6
+keywords = "plant,fruit,apple,object,toy,plush,red,green"
 front_normal = ExtResource("4_bc7xl")
 front_shiny = ExtResource("5_cfasp")
 back_normal = ExtResource("1_ky1n2")

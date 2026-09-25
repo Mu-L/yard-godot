@@ -7,13 +7,38 @@
 [ext_resource type="Texture2D" uid="uid://b3mj4qwrnncpf" path="res://example/godomon/assets/monsters/battler/back_normal/Tindursa.png" id="4_backn"]
 [ext_resource type="Texture2D" uid="uid://yimmtc3eac71" path="res://example/godomon/assets/monsters/battler/back_shiny/Tindursa.png" id="5_backs"]
 
+[sub_resource type="Resource" id="Resource_jxo58"]
+script = ExtResource("3_n7ofq")
+target_species = &"sizzly"
+min_level = 36
+metadata/_custom_type_script = "uid://dh362naomk3hc"
+
 [resource]
 script = ExtResource("1_script")
 name = "Tindursa"
-type_2 = &"fire"
+type_1 = &"fire"
+type_2 = &"wild"
+evolutions = Array[ExtResource("3_n7ofq")]([SubResource("Resource_jxo58")])
+base_hp = 66
+base_attack = 88
+base_defense = 62
+base_sp_attack = 58
+base_sp_defense = 58
+base_speed = 73
+growth_rate = 3
+experience_yield = 140
+ev_attack = 2
 gender_ratio = 2
+catch_rate = 45
+step_cycles = 20
+egg_groups = 16
+category = "Warmth"
+dex_entry = "Tindursa's shaggy fur glows like hot coals when it gets angry. It rubs its back against trees to burn marks into the bark and claim its territory."
+height = 1.0
+weight = 68.0
 color = 7
 shape = 11
+keywords = "animal,vertebrate,mammal,carnivoran,caniform,arctoid,bear,bipedal,red,starter"
 front_normal = ExtResource("2_frontn")
 front_shiny = ExtResource("3_fronts")
 back_normal = ExtResource("4_backn")

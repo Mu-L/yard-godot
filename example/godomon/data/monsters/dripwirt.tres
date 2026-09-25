@@ -7,12 +7,36 @@
 [ext_resource type="Texture2D" uid="uid://bbufbbfgpau3s" path="res://example/godomon/assets/monsters/battler/back_normal/Dripwirt.png" id="4_backn"]
 [ext_resource type="Texture2D" uid="uid://d3fksrx1njrvg" path="res://example/godomon/assets/monsters/battler/back_shiny/Dripwirt.png" id="5_backs"]
 
+[sub_resource type="Resource" id="Resource_uethx"]
+script = ExtResource("3_que32")
+target_species = &"pourka"
+context = 10
+min_level = 30
+metadata/_custom_type_script = "uid://dh362naomk3hc"
+
 [resource]
 script = ExtResource("1_script")
 name = "Dripwirt"
 type_1 = &"water"
+evolutions = Array[ExtResource("3_que32")]([SubResource("Resource_uethx")])
+base_hp = 50
+base_attack = 40
+base_defense = 55
+base_sp_attack = 55
+base_sp_defense = 60
+base_speed = 45
+experience_yield = 58
+ev_sp_defense = 1
+catch_rate = 190
+step_cycles = 20
+egg_groups = 1
+category = "Raincoat"
+dex_entry = "Dripwirt only shows up on rainy days, standing still under its dripping hood. People who lift the hood find nothing underneath but a puddle."
+height = 0.4
+weight = 3.5
 color = 9
 shape = 4
+keywords = "ambiguous,drip,hooded,cloak,raincoat,coat,cloths,mysterious,poncho,borwn,yellow"
 front_normal = ExtResource("2_frontn")
 front_shiny = ExtResource("3_fronts")
 back_normal = ExtResource("4_backn")
