@@ -744,57 +744,33 @@ func _add_breadcrumb_crumb(label: String, depth: int, is_current: bool) -> void:
 		subresource_bar_breadcrumb.add_child(crumb)
 
 
-func _edit_entry_property(
-	uid: StringName,
+## Sets a property of the resource shown in [param row_id], as an undo-able action.
+func _apply_property_edit(
+	row_id: StringName,
 	property: StringName,
 	old_value: Variant,
 	new_value: Variant,
 ) -> void:
-	if not RegistryIO.is_uid_valid(uid):
-		return
+	var res: Resource
+	var display_id: String
+	var file_resource: Resource
+	if is_in_subresource_view():
+		var row_data: Dictionary = _subresource_rows.get(row_id, { })
+		res = row_data.get(&"resource")
+		display_id = row_data.get(&"display_id", "")
+		file_resource = row_data.get(&"file_resource")
+	else:
+		var uid := current_registry.get_uid(row_id)
+		if RegistryIO.is_uid_valid(uid):
+			res = load(uid)
+		display_id = row_id
 
-	var res := load(uid)
-	var string_id := current_registry.get_string_id(uid)
-	_apply_property_edit(res, property, old_value, new_value, "%s—>%s" % [string_id, property])
-
-
-func _edit_subresource_property(
-	row_id: StringName,
-	column: StringName,
-	old_value: Variant,
-	new_value: Variant,
-) -> void:
-	var row_data: Dictionary = _subresource_rows.get(row_id, { })
-	if row_data.is_empty():
-		return
-	var res: Resource = row_data.get(&"resource")
 	if not res:
 		return
-	var display_id: String = row_data.get(&"display_id", "")
-	_apply_property_edit(
-		res,
-		column,
-		old_value,
-		new_value,
-		"%s—>%s" % [display_id, column],
-		row_data.get(&"file_resource"),
-	)
-
-
-## file_resource: the resource saved to the file [param res] is embedded in, if built-in.
-func _apply_property_edit(
-	res: Resource,
-	property: StringName,
-	old_value: Variant,
-	new_value: Variant,
-	label: String,
-	file_resource: Resource = null,
-) -> void:
 	if not property in res:
 		YardLogger.error("Property %s not in resource" % property)
 		return
 
-	var prop_types := ClassUtils.get_property_declared_types(res, property)
 	if new_value == null:
 		if res.get_script():
 			new_value = res.get_script().get_property_default_value(property)
@@ -804,28 +780,9 @@ func _apply_property_edit(
 				property,
 			)
 
-	var valid := false
-	for prop_type: String in prop_types:
-		if (
-			(
-				ClassUtils.is_type_builtin(typeof(new_value))
-				and type_string(typeof(new_value)) == prop_type
-			)
-			or (
-				typeof(new_value) in [TYPE_INT, TYPE_FLOAT]
-				and prop_type in [type_string(TYPE_INT), type_string(TYPE_FLOAT)]
-			)
-			or ClassUtils.is_class_of(new_value, prop_type)
-			or (new_value == null and typeof(old_value) == TYPE_OBJECT)
-		):
-			valid = true
-			break
-		elif typeof(new_value) in [TYPE_INT, TYPE_FLOAT] and prop_type == type_string(TYPE_STRING):
-			valid = true
-			new_value = str(new_value)
-			break
-
-	if not valid:
+	var prop_types := ClassUtils.get_property_declared_types(res, property)
+	new_value = _convert_value(new_value, prop_types)
+	if not _is_value_assignable(new_value, prop_types, old_value):
 		YardLogger.error(
 			"Invalid type. Couldn't set %s (%s) to %s (%s)"
 			% [property, ", ".join(prop_types), new_value, ClassUtils.get_type_name(new_value)],
@@ -833,7 +790,7 @@ func _apply_property_edit(
 		return
 
 	var undo_redo := EditorInterface.get_editor_undo_redo()
-	undo_redo.create_action("Set %s" % label)
+	undo_redo.create_action("Set %s—>%s" % [display_id, property])
 	undo_redo.add_do_property(res, property, new_value)
 	undo_redo.add_undo_property(res, property, old_value)
 	if file_resource and file_resource != res:
@@ -843,6 +800,35 @@ func _apply_property_edit(
 		undo_redo.add_undo_method(EditorInterface, &"set_object_edited", file_resource, true)
 	undo_redo.add_undo_method(self, &"update_view")
 	undo_redo.commit_action()
+
+
+## Converts [param value] to the declared type of a property when an implicit conversion
+## is supported (numbers to String). Returns [param value] unchanged otherwise.
+static func _convert_value(value: Variant, prop_types: Array[String]) -> Variant:
+	if typeof(value) in [TYPE_INT, TYPE_FLOAT] and type_string(TYPE_STRING) in prop_types:
+		return str(value)
+	return value
+
+
+## True if [param value] can be set on a property declared with one of [param prop_types].
+## null is accepted to clear an Object property, which [param old_value] tells apart.
+static func _is_value_assignable(
+	value: Variant,
+	prop_types: Array[String],
+	old_value: Variant,
+) -> bool:
+	for prop_type: String in prop_types:
+		if (
+			(ClassUtils.is_type_builtin(typeof(value)) and type_string(typeof(value)) == prop_type)
+			or (
+				typeof(value) in [TYPE_INT, TYPE_FLOAT]
+				and prop_type in [type_string(TYPE_INT), type_string(TYPE_FLOAT)]
+			)
+			or ClassUtils.is_class_of(value, prop_type)
+			or (value == null and typeof(old_value) == TYPE_OBJECT)
+		):
+			return true
+	return false
 
 
 func _ask_confirm_delete_entries() -> void:
@@ -1034,15 +1020,12 @@ func _on_cell_edited(
 				"String ID is read-only in sub-resource view. Go back to the main view to rename entries."
 			)
 		else:
-			_edit_subresource_property(row_id, column, old_value, new_value)
+			_apply_property_edit(row_id, column, old_value, new_value)
 		update_view()
 		return
 
 	if column not in [UID_COLUMN, STRINGID_COLUMN]:
-		var uid := current_registry.get_uid(row_id)
-		var property := column
-		if RegistryIO.is_uid_valid(uid):
-			_edit_entry_property(uid, property, old_value, new_value)
+		_apply_property_edit(row_id, column, old_value, new_value)
 	elif column == STRINGID_COLUMN and new_value:
 		RegistryIO.rename_entry(current_registry, row_id, new_value)
 	elif column == UID_COLUMN and new_value:
