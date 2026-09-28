@@ -188,12 +188,14 @@ theme_type_variation = &"FlatButton"
 text = "Report Issue"
 icon = ExtResource("4_6e4lp")
 
+[node name="VSeparator2" type="VSeparator" parent="VBoxContainer/HBoxContainer" unique_id=254307766]
+layout_mode = 2
+
 [node name="OpenDocumentationButton" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=1942713270]
 layout_mode = 2
 tooltip_text = "Open the Registry class documentation."
 focus_mode = 0
 theme_type_variation = &"FlatButton"
-text = "Open Docs"
 script = ExtResource("4_dd5h4")
 icon_name = "Help"
 
@@ -202,11 +204,10 @@ layout_mode = 2
 tooltip_text = "Open the README.md popup."
 focus_mode = 0
 theme_type_variation = &"FlatButton"
-text = "README"
 script = ExtResource("4_dd5h4")
 icon_name = "Info"
 
-[node name="VSeparator2" type="VSeparator" parent="VBoxContainer/HBoxContainer" unique_id=254307766]
+[node name="VSeparator3" type="VSeparator" parent="VBoxContainer/HBoxContainer" unique_id=111738383]
 layout_mode = 2
 
 [node name="VersionButton" type="Button" parent="VBoxContainer/HBoxContainer" unique_id=1718352515]
