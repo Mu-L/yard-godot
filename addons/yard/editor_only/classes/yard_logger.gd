@@ -34,7 +34,7 @@ static func error(message: String) -> void:
 
 	if Compat.is_engine_version_equal_or_newer(4, 5):
 		var caller: Dictionary = get_stack()[1]
-		line = caller.get("line", "")
+		line = str(caller.get("line", ""))
 		source = caller.get("source", "")
 	else:
 		# For some reason, on 4.4, get_stack() returns an empty array.
