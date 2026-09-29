@@ -48,3 +48,12 @@ static func get_base_color(p_dimness_ofs: float = 0.0, p_saturation_mult: float 
 	c.v = clamp(lerp(c.v, 0.0, contrast * p_dimness_ofs), 0.0, 1.0)
 	c.s = c.s * p_saturation_mult
 	return c
+
+
+## Returns true if [param node] belongs to the scene currently edited in the editor.
+## Used to skip theming there, since those changes would get saved and show up in VCS diffs.
+static func is_in_edited_scene(node: Node) -> bool:
+	if not Engine.is_editor_hint():
+		return false
+	var root := EditorInterface.get_edited_scene_root()
+	return root and (root == node or root.is_ancestor_of(node))

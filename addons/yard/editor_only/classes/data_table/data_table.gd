@@ -146,7 +146,7 @@ func _ready() -> void:
 	_style = CellStyle.new()
 	_refresh_style()
 
-	if Engine.is_editor_hint() and not EditorInterface.get_edited_scene_root() == self:
+	if Engine.is_editor_hint() and not EditorThemeUtils.is_in_edited_scene(self):
 		EditorInterface.get_editor_settings().settings_changed.connect(_on_editor_settings_changed)
 		EditorInterface.get_resource_previewer().preview_invalidated.connect(
 			_on_resource_previewer_preview_invalidated

@@ -91,7 +91,7 @@ var _context_column: StringName
 
 
 func _ready() -> void:
-	if not Engine.is_editor_hint() or EditorInterface.get_edited_scene_root() == self:
+	if EditorThemeUtils.is_in_edited_scene(self):
 		return
 
 	EditorInterface.get_inspector().property_edited.connect(_on_inspector_property_edited)

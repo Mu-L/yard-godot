@@ -85,7 +85,7 @@ var _fuz := YardFuzzySearch.new()
 
 
 func _ready() -> void:
-	if not Engine.is_editor_hint() or EditorInterface.get_edited_scene_root() == self:
+	if EditorThemeUtils.is_in_edited_scene(self):
 		return
 
 	_file_dialog = EditorFileDialog.new()
