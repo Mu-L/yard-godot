@@ -74,9 +74,9 @@ The core display loosely follows the [Model-View-Adapter](https://en.wikipedia.o
 - **Adapter**: `RegistryTableView` — translates registry entries into rows and column
   configs, and calls `RegistryIO` when a cell is edited. This is where most
   registry-specific UI logic lives.
-- **View**: `DataTable` — a generic spreadsheet over a flat `Array[Array]` of
-  `Variant` values. It has no knowledge of `Registry` or any YARD-specific logic.
-  Keep it that way.
+- **View**: `DataTable` — a generic spreadsheet. Each row has a `StringName` ID and
+  maps column IDs to `Variant` values. It has no knowledge of `Registry` or any
+  YARD-specific logic. Keep it that way.
 
 `RegistryEditor` sits above this as an application shell: it manages which
 registries are open, handles file operations (open, close, recent), and owns the top
