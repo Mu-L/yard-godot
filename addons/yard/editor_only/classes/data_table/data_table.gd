@@ -525,6 +525,7 @@ func _setup_components() -> void:
 
 	_filter_line_edit = LineEdit.new()
 	_filter_line_edit.visible = false
+	_filter_line_edit.right_icon = get_theme_icon(&"Search", &"EditorIcons")
 	_filter_line_edit.text_submitted.connect(_apply_filter)
 	_filter_line_edit.focus_exited.connect(_on_filter_focus_exited)
 	add_child(_filter_line_edit)
