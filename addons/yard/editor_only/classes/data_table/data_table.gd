@@ -534,6 +534,7 @@ func _setup_components() -> void:
 	_filter_line_edit.visible = false
 	_filter_line_edit.right_icon = get_theme_icon(&"Search", &"EditorIcons")
 	_filter_line_edit.text_submitted.connect(_apply_filter)
+	_filter_line_edit.editing_toggled.connect(_on_filter_editing_toggled)
 	_filter_line_edit.focus_exited.connect(_on_filter_focus_exited)
 	add_child(_filter_line_edit)
 
@@ -1543,6 +1544,12 @@ func _on_v_scroll_value_changed(value: float) -> void:
 func _on_filter_focus_exited() -> void:
 	if _filter_line_edit.visible:
 		_apply_filter(_filter_line_edit.text)
+
+
+func _on_filter_editing_toggled(toggled_on: bool) -> void:
+	if not toggled_on:
+		# Discard filter edits when pressing `ui_cancel` (Escape)
+		_apply_filter(_filter_text)
 
 
 func _on_editor_settings_changed() -> void:
